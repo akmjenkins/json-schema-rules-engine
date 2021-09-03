@@ -4,59 +4,91 @@ import { patch, memoRecord } from './utils';
 
 const createFactEvaluator =
   (context, facts, { validator, resolver }, emit) =>
-  (rule) => {
-    return async ([factName, { name, params, path, is }]) => {
-      const fact = facts[factName] || context[factName];
+  (rule, index) =>
+  async ([factName, { name, params, path, is }]) => {
+    emit('debug', {
+      type: 'STARTING_FACT',
+      fact: factName,
+      rule,
+      index,
+      params,
+    });
+    const fact = facts[factName] || context[factName];
+    try {
+      const value = await (typeof fact === 'function' ? fact(params) : fact);
+      const resolved = path ? resolver(value, path) : value;
+      emit('debug', {
+        type: 'EXECUTED_FACT',
+        fact: factName,
+        rule,
+        index,
+        params,
+        value,
+        resolved,
+      });
       try {
-        const value = await (typeof fact === 'function' ? fact(params) : fact);
-        const resolved = path ? resolver(value, path) : value;
-        try {
-          const result = await validator(resolved, is);
-          return {
-            factName,
-            name,
-            value,
-            resolved,
-            ...result,
-          };
-        } catch (err) {
-          emit('error', {
-            type: 'FactEvaluationError',
-            rule,
-            err,
-            context,
-            factName,
-            value,
-            resolved,
-            path,
-            is,
-          });
-          return { error: true };
-        }
-      } catch (err) {
-        emit('error', {
-          type: 'FactExecutionError',
+        const result = await validator(resolved, is);
+        emit('debug', {
+          type: 'EVALUATED_FACT',
+          fact: factName,
           rule,
-          err,
+          value,
+          resolved,
+          is,
+          index,
+          result,
+        });
+        return {
+          factName,
+          name,
+          value,
+          resolved,
+          ...result,
+        };
+      } catch (error) {
+        emit('error', {
+          type: 'FactEvaluationError',
+          rule,
+          error,
           context,
           factName,
-          params,
+          value,
+          resolved,
+          path,
+          is,
         });
         return { error: true };
       }
-    };
+    } catch (error) {
+      emit('error', {
+        type: 'FactExecutionError',
+        rule,
+        error,
+        context,
+        factName,
+        params,
+      });
+      return { error: true };
+    }
   };
 
-const createConditionChecker = (context, facts, options, emit) => {
+const createFactmapChecker = (context, facts, options, emit) => {
   const evaluator = createFactEvaluator(context, facts, options, emit);
-  return async (conditionMap) => {
-    const results = await Promise.all(
-      Object.entries(conditionMap).map(evaluator),
-    );
-    return results.reduce(
-      (acc, { factName, ...rest }) => ({ ...acc, [factName]: rest }),
-      {},
-    );
+  return (rule) => {
+    return async (factMap, index) => {
+      emit('debug', {
+        type: 'STARTING_FACT_MAP',
+        rule,
+        index,
+      });
+      const results = await Promise.all(
+        Object.entries(factMap).map(evaluator(rule, index)),
+      );
+      return results.reduce(
+        (acc, { factName, ...rest }) => ({ ...acc, [factName]: rest }),
+        {},
+      );
+    };
   };
 };
 
@@ -90,58 +122,72 @@ const getResultsContext = (results) =>
     { ...results },
   );
 
-const createActionExecutor = (actions, opts, emit) => (what, context) => {
-  interpolateDeep(what, context, opts.pattern, opts.resolver).forEach(
-    async ({ action, params }) => {
-      try {
-        await actions[action](params);
-      } catch (err) {
-        emit('error', {
-          type: 'ActionExecutionError',
-          action,
-          params,
-          err,
-        });
-      }
-    },
+const createActionExecutor = (actions, opts, emit) => (what, context) =>
+  Promise.all(
+    interpolateDeep(what, context, opts.pattern, opts.resolver).map(
+      async ({ type, params }) => {
+        try {
+          if (!actions[type]) throw new Error(`No action found for ${type}`);
+          await actions[type](params);
+        } catch (error) {
+          emit('error', {
+            type: 'ActionExecutionError',
+            action: type,
+            params,
+            error,
+          });
+        }
+      },
+    ),
   );
-};
 
 const createRuleRunner = (context, facts, actions, opts, emit) => {
-  const checker = createConditionChecker(context, facts, opts, emit);
+  const checker = createFactmapChecker(context, facts, opts, emit);
   const executor = createActionExecutor(actions, opts, emit);
-  return async ([rule, { when, then, otherwise }]) => {
-    emit('debug', `starting to run rule ${rule}`);
+  return async ([rule, { when, ...rest }]) => {
     const interpolatedRule = interpolateDeep(
       when,
       context,
       opts.pattern,
       opts.resolver,
     );
+    emit('debug', {
+      type: 'STARTING_RULE',
+      rule,
+      interpolated: interpolatedRule,
+    });
     const results = await Promise.all(interpolatedRule.map(checker(rule)));
     const { passed, error } = getRuleResults(results);
-    if (error) return;
-    const which = passed ? then : otherwise;
     const resultsContext = getResultsContext(results);
-    emit('debug', `finished running ${rule}`, {
+    emit('debug', {
+      type: 'FINISHED_RULE',
+      rule,
+      results,
       passed,
       error,
-      results: resultsContext,
+      context: resultsContext,
     });
+    if (error) return;
+    const key = passed ? 'then' : 'otherwise';
+    const which = rest[key];
     if (!which) return;
+    const nextContext = {
+      ...context,
+      results: { ...(context.results || {}), ...resultsContext },
+    };
 
-    const actionContext = { ...context, results: resultsContext };
-    // nested rules!
-    if (which.when)
-      return createRuleRunner(
-        actionContext,
-        facts,
-        actions,
-        opts,
-        emit,
-      )([rule, which]);
-
-    executor(which, actionContext);
+    await Promise.all([
+      which.when
+        ? createRuleRunner(
+            nextContext,
+            facts,
+            actions,
+            opts,
+            emit,
+          )([`${rule}.${key}`, which])
+        : null,
+      which.actions ? executor(which.actions, nextContext) : null,
+    ]);
   };
 };
 

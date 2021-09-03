@@ -22,6 +22,15 @@ npm install json-schema-rules-engine
 yarn add json-schema-rules-engine
 ```
 
+or, use it directly in the browser
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/json-schema-rules-engine"></script>
+<script>
+  const engine = jsonSchemaRulesEngine({ facts, actions, rules, validator });
+</script>
+```
+
 ## Basic Example
 
 ```js
@@ -40,7 +49,6 @@ const rules = {
     when: [
       {
         weather: {
-          name: 'checkTemp',
           params: {
             query: '{{city}}',
             appId: '{{apiKey}}',
@@ -54,23 +62,22 @@ const rules = {
         },
       },
     ],
-    then: [
-      {
-        action: 'log',
-        params: {
-          message: 'Quite hot out today - it is {{results.checkTemp.resolved}}',
+    then: {
+      actions: [
+        {
+          type: 'log',
+          params: { message: 'Quite hot out today!' },
         },
-      },
-    ],
-    otherwise: [
-      {
-        action: 'log',
-        params: {
-          message:
-            'Brrr, bundle up - it is only {{results.checkTemp.resolved}}',
+      ],
+    },
+    otherwise: {
+      actions: [
+        {
+          type: 'log',
+          params: { message: 'Brrr, bundle up!' },
         },
-      },
-    ],
+      ],
+    },
   },
 };
 
@@ -93,7 +100,202 @@ engine.run({
 // check the console
 ```
 
-## Interpolation
+## Concepts
+
+- [Context](#context)
+- [Facts](#facts)
+- [Actions](#actions)
+- [Rules](#rules)
+  - [FactMap](#factmap)
+  - [Evaluators](#evaluators)
+- [Interpolation](#context)
+- [Events](#events)
+
+### Context
+
+`context` is the name of the object the rules engine evaluates during `run`. It can be used for interpolation or even as a source of facts
+
+```js
+const context = {
+  hotTemp: 20,
+  city: 'Halifax',
+  apiKey: 'XXXX',
+  units: 'metric',
+};
+
+engine.run(context);
+```
+
+### Facts
+
+There are two types of facts - static and functional. Functional facts come from the facts given to the rule engine when it is created (or via [setFacts](`setFacts`)). They are unary functions that return a value, synchronously or asynchronously. Check out this example weather fact that calls an the [openweather api](https://openweathermap.org/api) and returns the JSON response.
+
+```js
+const weather = async ({ query, appId, units }) => {
+  const url = `https://api.openweathermap.org/data/2.5/weather/?q=${q}&units=${units}&appid=${appId}`;
+  return (await fetch(url)).json();
+};
+```
+
+Static facts are simply the values of the context object
+
+### Actions
+
+Actions, just like facts, are unary functions. They can be sync or async and can do anything. They are executed as an outcome of a rule.
+
+```js
+const saveAuditRecord = async ({ eventType, data }) => {
+  await db.insert('INSERT INTO audit_log (event, data) VALUES(?,?)', [
+    eventType,
+    data,
+  ]);
+};
+
+const engine = createRulesEngine({ actions: saveAuditRecord });
+```
+
+### Rules
+
+Rules are written as **when**, **then**, **otherwise**. A when clause consists of an array of [`FactMap`s](#factmap). If any of the `FactMap`s evaluate to true, the properties of the `then` clause of the rule are evaluated. If not, the `otherwise` clause is evaluated.
+
+```js
+const myRule = {
+  when: [
+    {
+      age: {
+        is: {
+          type: 'number',
+          minimum: 30,
+        },
+      },
+      name: {
+        is: {
+          type: 'string',
+          pattern: '^J',
+        },
+      },
+    },
+  ],
+  then: {
+    actions: [
+      {
+        type: 'log',
+        params: {
+          message: 'Hi {{name}}!',
+        },
+      },
+    ],
+  },
+};
+
+const engine = createRulesEngine({ rules: { myRule } });
+engine.run({ age: 31, name: 'Fred' }); // no action is fired
+engine.run({ age: 32, name: 'Joe' }); // fires the log action with { message: 'Hi Joe!' }
+```
+
+#### Nesting Rules
+
+The `then` or `otherwise` property can consist of either `actions`, but it can also contain another `when` clause. All functional facts in all [FactMaps](#factmaps) are evaluated simultaneously. By nesting `when`'s, you can cause facts to be executed serially.
+
+```js
+const myRule = {
+  when: [
+    {
+      weather: {
+        name: 'myWeatherFact',
+        params: {
+          query: '{{city}}',
+          appId: '{{apiKey}}',
+          units: '{{units}}',
+        },
+        path: 'main.temp',
+        is: {
+          type: 'number',
+          minimum: 30
+        }
+      },
+    },
+  ],
+  then: {
+    when: [
+      {
+        forecast: {
+          params: {
+            appId: '{{apiKey}}',
+            coord: '{{results.myWeatherFact.value.coord}}' // interpolate a value returned from the first fact
+          },
+          path: 'daily',
+          is: {
+            type: 'array',
+            contains: {
+              type: 'object',
+              properties: {
+                temp: {
+                  type: 'object',
+                  properties: {
+                    max: {
+                      type: 'number',
+                      minimum: 20
+                    }
+                  }
+                }
+              }
+            },
+            minContains: 4
+          }
+        }
+      },
+      then: {
+        actions: {
+          type: 'log',
+          params: {
+            message: 'Nice week of weather coming up',
+          }
+        }
+      }
+    ],
+    actions: [
+      {
+        type: 'log',
+        params: {
+          message: 'Warm one today',
+        },
+      },
+    ],
+  },
+};
+```
+
+#### FactMap
+
+A fact map is a plain object whose keys are facts (static or functional) and values are [`Evaluator`'s](#evaluator)
+
+#### Evaluator
+
+An evaluator is an object that specifies a JSON Schema to evaluate a fact against. If the fact is a functional fact, the evaluator can specify params to pass to the fact as an argument. A `path` can also be specified to more easily evaluate a nested property contained within the fact.
+
+The following weather fact evaluator passes parameters to the function and specifies a schema to check the value at `main.temp` against:
+
+```js
+const myFactMap = {
+  weather: {
+    params: {
+      query: '{{city}}',
+      appId: '{{apiKey}}',
+      units: '{{units}}',
+    },
+    path: 'main.temp',
+    is: {
+      type: 'number',
+      minimum: '{{hotTemp}}',
+    },
+  },
+};
+```
+
+You can also specify a `name` as a way to more easily interpolate the result from the
+
+### Interpolation
 
 Interpolation is configurable by passing the `pattern` option. By default, it uses [handlebars](https://handlebarsjs.com/)
 
@@ -103,21 +305,52 @@ The default mechanism of resolution of an interpolated property is simple dot-no
 
 In addition to `context`, actions have a special property called `results` that can be used for interpolation. Read more about results context [here](tbd)
 
-## API
+## Events
 
-TO DO
+The rules engine is also an event emitter. There are 4 types of events you can listen to
 
-## Debugging
+- [start](#start)
+- [complete](#complete)
+- [debug](#debug)
+- [error](#error)
 
-To monitor the evalation of the rules, just add a debug listener
+### start
+
+Emitted as soon as you call `run` on the engine
 
 ```js
-import createRulesEngine from 'json-schema-rules-engine';
-
-const engine = createRulesEngine(options);
-engine.on('debug', console.log);
-engine.run(context);
+engine.on('start', ({context,facts,rules,actions}) => { ... })
 ```
+
+### complete
+
+Emitted when all rules have been evaluated AND all actions have been executed
+
+```js
+engine.on('complete', ({context}) => { ... })
+```
+
+### debug
+
+Useful to monitor the internal execution and evaluation of facts and actions
+
+```js
+engine.on('debug',(arg) => { ... })
+```
+
+### error
+
+Any errors thrown during fact execution/evaluation or action execution are emitted via `error`
+
+```js
+engine.on('error',({type, ...rest}) => { ... })
+```
+
+The errors that can be emitted are:
+
+- `FactExecutionError` - errors thrown during the execution of functional facts
+- `FactEvaluationError` - errors thrown during the evaluation of facts/results from facts
+- `ActionExecutionError` - errors thrown during the execution of actions
 
 ## License
 

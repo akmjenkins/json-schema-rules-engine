@@ -3,6 +3,7 @@ module.exports = {
     '^.+\\.jsx?$': require.resolve('babel-jest'),
     '^.+\\.ts?$': 'ts-jest',
   },
+  transformIgnorePatterns: ['node_modules/(?!(node-fetch|fetch-blob)/)'],
   coverageThreshold: {
     global: {
       branches: 90,

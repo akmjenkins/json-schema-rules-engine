@@ -1,8 +1,31 @@
+import fetch from 'node-fetch';
 import createRulesEngine from '../src';
-import { createAjvValidator } from '../src/validators/ajv';
+import { createAjvValidator } from './validators';
+import * as facts from './facts';
+import * as fixtures from './fixtures';
+import * as rules from './rules';
+
+jest.mock('node-fetch', () => require('fetch-mock-jest').sandbox());
 
 describe('engine', () => {
-  it('should execute a rule', () => {});
+  fetch.mock(/\/weather/, fixtures.weather);
+  fetch.mock(/\/onecall/, fixtures.forecast);
+
+  let engine;
+
+  beforeEach(() => {
+    engine = createRulesEngine({ validator: createAjvValidator() });
+  });
+
+  it('should execute a rule', async () => {
+    await engine.run({
+      minimumWarmDays: 4,
+      minimumWarmTemp: 20,
+      units: 'metric',
+      apiKey: 'XXX',
+      query: 'Halifax',
+    });
+  });
 
   it('should log debug messages', () => {});
 

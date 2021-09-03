@@ -2,9 +2,18 @@
   "name": "json-schema-rules-engine",
   "version": "0.0.1",
   "description": "Rules engine based on JSON Schema",
-  "main": "index.js",
+  "main": "build/index.js",
   "author": "Adam Jenkins",
   "license": "MIT",
+  "browser": "build/bundle.min.js",
+  "keywords": [
+    "json schema",
+    "rules engine",
+  ],
+  "files": [
+    "build",
+    "index.d.ts"
+  ],
   "scripts": {
     "build": "rimraf build && babel src/index.js -d build && rollup -c ",
     "test": "jest"
@@ -19,7 +28,7 @@
     "@types/node": "^16.7.10",
     "@typescript-eslint/eslint-plugin": "^4.30.0",
     "@typescript-eslint/parser": "^4.30.0",
-    "ajv": "^6.12.6",
+    "ajv": "^8.6.2",
     "babel-eslint": "^10.1.0",
     "babel-jest": "^27.1.0",
     "benchmark": "^2.1.4",
@@ -30,9 +39,10 @@
     "eslint-plugin-import": "^2.24.2",
     "eslint-plugin-jest": "^24.4.0",
     "eslint-plugin-prettier": "^4.0.0",
-    "got": "^11.8.2",
+    "fetch-mock-jest": "^1.5.1",
     "jest": "^27.1.0",
     "microtime": "^3.0.0",
+    "node-fetch": "^3.0.0",
     "prettier": "^2.3.2",
     "rollup": "^2.56.3",
     "rollup-plugin-bundle-size": "^1.0.3",
