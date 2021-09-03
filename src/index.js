@@ -92,13 +92,13 @@ const getResultsContext = (results) =>
 
 const createActionExecutor = (actions, opts, emit) => (what, context) => {
   interpolateDeep(what, context, opts.pattern, opts.resolver).forEach(
-    async ({ type, params }) => {
+    async ({ action, params }) => {
       try {
-        await actions[type](params);
+        await actions[action](params);
       } catch (err) {
         emit('error', {
           type: 'ActionExecutionError',
-          action: type,
+          action,
           params,
           err,
         });
@@ -129,7 +129,19 @@ const createRuleRunner = (context, facts, actions, opts, emit) => {
       results: resultsContext,
     });
     if (!which) return;
-    executor(which, { ...context, results: resultsContext });
+
+    const actionContext = { ...context, results: resultsContext };
+    // nested rules!
+    if (which.when)
+      return createRuleRunner(
+        actionContext,
+        facts,
+        actions,
+        opts,
+        emit,
+      )([rule, which]);
+
+    executor(which, actionContext);
   };
 };
 
@@ -138,22 +150,27 @@ const createRulesEngine = ({
   actions = {},
   rules = {},
   ...options
-}) => {
+} = {}) => {
   options = { ...defaults, ...options };
   const eventMap = new Map();
 
   const emit = (event, ...args) =>
     (eventMap.get(event) || []).forEach((s) => s(...args));
 
+  const off = (event, subscriber) => {
+    eventMap.get(event)?.delete(subscriber);
+  };
+
+  const on = (event, subscriber) => {
+    if (!eventMap.get(event)) eventMap.set(event, new Set());
+    eventMap.get(event).add(subscriber);
+    return () => off(event, subscriber);
+  };
+
   return {
     setFacts: (next) => (facts = patch(next, facts)),
     setActions: (next) => (actions = patch(next, actions)),
     setRules: (next) => (rules = patch(next, rules)),
-    on: (event, subscriber) => {
-      if (!eventMap.get(event)) eventMap.set(event, new Set());
-      eventMap.get(event).add(subscriber);
-      return () => eventMap.get(event).delete(subscriber);
-    },
     run: async (context) => {
       emit('start', { context, facts, rules, actions });
       const runner = createRuleRunner(
@@ -166,6 +183,8 @@ const createRulesEngine = ({
       await Promise.all(Object.entries(rules).map(runner));
       emit('complete', { context });
     },
+    on,
+    off,
   };
 };
 
