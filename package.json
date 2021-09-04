@@ -8,7 +8,7 @@
   "browser": "build/bundle.min.js",
   "keywords": [
     "json schema",
-    "rules engine",
+    "rules engine"
   ],
   "files": [
     "build",
