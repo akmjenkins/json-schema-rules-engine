@@ -32,10 +32,10 @@ const createFactEvaluator =
           type: 'EVALUATED_FACT',
           fact: factName,
           rule,
+          index,
           value,
           resolved,
           is,
-          index,
           result,
         });
         return {
@@ -198,6 +198,9 @@ const createRulesEngine = ({
   ...options
 } = {}) => {
   options = { ...defaults, ...options };
+
+  if (!options.validator) throw new Error('A validator is required');
+
   const eventMap = new Map();
 
   const emit = (event, ...args) =>
