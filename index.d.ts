@@ -38,6 +38,7 @@ type Options = {
   facts?: Facts;
   actions: Actions;
   rules?: Rules;
+  pattern?: RegExp;
 };
 
 type StartingFactMapEvent = {
