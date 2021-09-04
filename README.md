@@ -107,7 +107,7 @@ engine.run({
 
 ## Concepts
 
-- [Validators](#validators)
+- [Validator](#validator)
 - [Context](#context)
 - [Facts](#facts)
 - [Actions](#actions)
@@ -117,7 +117,7 @@ engine.run({
 - [Interpolation](#context)
 - [Events](#events)
 
-## Validators
+## Validator
 
 The thing about `json-schema-rules-engine` is that you don't have to use JSON schema (but you are highly encouraged to!)
 
