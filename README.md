@@ -6,11 +6,11 @@ _NBD: It actually doesn't **have** to use JSON Schema, but it's suggested_
 
 ## Features
 
-- Highly configurable - use any type of schema to express your logic (we strongly suggest the JSON Schema Standard)
+- Highly configurable - use any type of schema to express your logic (we strongly suggest JSON Schema)
 - Configurable interpolation to make highly reusable rules/actions
 - Zero-dependency, extremely lightweight (under 2kb minzipped)
 - Runs everywhere
-- Nested conditions allow for sequential evaluation of facts
+- Nested conditions allow for controlling rule evaluation order
 - Memoization makes it fast
 - No thrown errors - errors are emitted, never thrown
 
@@ -34,8 +34,8 @@ or, use it directly in the browser
 ## Basic Example
 
 ```js
+import Ajv2019 from 'ajv/dist/2019';
 import createRulesEngine from 'json-schema-rules-engine';
-import { createAjvValidator } from 'json-schema-rules-engine/validators';
 
 const facts = {
   weather: async ({ query, appId, units }) => {
@@ -86,7 +86,12 @@ const actions = {
 };
 
 // validate using a JSON schema via AJV
-const validator = createAjvValidator();
+const ajv = new Ajv();
+const validator = async (subject, schema) => {
+  const validate = ajv.compile(schema);
+  const result = await validate(subject);
+  return { result };
+};
 
 const engine = createRulesEngine({ facts, rules, actions, validator });
 
@@ -102,6 +107,7 @@ engine.run({
 
 ## Concepts
 
+- [Validators](#validators)
 - [Context](#context)
 - [Facts](#facts)
 - [Actions](#actions)
@@ -110,6 +116,52 @@ engine.run({
   - [Evaluators](#evaluators)
 - [Interpolation](#context)
 - [Events](#events)
+
+## Validators
+
+The thing about `json-schema-rules-engine` is that you don't have to use JSON schema (but you are highly encouraged to!)
+
+You **must** provide a validator when creating a rules engine. We haven't provided one in the interest of keeping this package unopinionated and small, but here's a great one to use:
+
+```js
+import Ajv from 'Ajv';
+const ajv = new Ajv();
+const validator = async (subject, schema) => {
+  const validate = ajv.compile(schema);
+  const result = await validate(subject);
+  return { result };
+};
+```
+
+The validator must return an object with a `result` key that has a `boolean`. It can run async. It is used to evaluate a fact at runtime, and is passed the fact value and the schema (or otherwise serializable JSON) you have defined in your rules
+
+```js
+const rule = {
+  myRule: {
+    when: [
+      {
+        firstName: {
+          is: {
+            type: 'string',
+            pattern: '^Joe',
+          },
+        },
+      },
+    ];
+  }
+}
+
+engine.run({firstName: 'Bill'})
+
+// the validator you provided is called like this:
+const { result, ...rest } = validator(
+  'Bill',
+  {
+    type: 'string',
+    pattern: '^Joe',
+  }
+);
+```
 
 ### Context
 
@@ -355,3 +407,7 @@ The errors that can be emitted are:
 ## License
 
 [MIT](./LICENSE)
+
+## Contributing
+
+Help wanted to! Reach out [@akmjenkins](https://twitter.com/akmjenkins) or [akmjenkins@gmail.com](mailto:akmjenkins@gmail.com)
