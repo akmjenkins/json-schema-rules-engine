@@ -410,4 +410,4 @@ The errors that can be emitted are:
 
 ## Contributing
 
-Help wanted to! Reach out [@akmjenkins](https://twitter.com/akmjenkins) or [akmjenkins@gmail.com](mailto:akmjenkins@gmail.com)
+Help wanted! I'd like to really create great advanced types around the content of the facts, actions, and context given to the engine. Reach out [@akmjenkins](https://twitter.com/akmjenkins) or [akmjenkins@gmail.com](mailto:akmjenkins@gmail.com)
