@@ -22,6 +22,9 @@ describe('rules engine', () => {
         then: {
           actions: [{ type: 'log', params: { message: 'Hi friend!' } }],
         },
+        otherwise: {
+          actions: [{ type: 'call', params: { message: 'Who are you?' } }],
+        },
       },
     };
     engine.setRules(rules);
@@ -30,6 +33,7 @@ describe('rules engine', () => {
     log.mockClear();
     await engine.run({ firstName: 'Bill' });
     expect(log).not.toHaveBeenCalled();
+    expect(call).toHaveBeenCalledWith({ message: 'Who are you?' });
   });
 
   it('should access a property via path', async () => {
