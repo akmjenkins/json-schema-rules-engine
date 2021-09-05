@@ -55,6 +55,17 @@ module.exports = {
         'plugin:@typescript-eslint/eslint-recommended',
         'plugin:@typescript-eslint/recommended',
       ],
+      settings: {
+        'import/parsers': {
+          '@typescript-eslint/parser': ['.ts', '.tsx'],
+        },
+        'import/resolver': {
+          typescript: {},
+        },
+      },
+      rules: {
+        '@typescript-eslint/explicit-module-boundary-types': 0,
+      },
     },
     {
       files: ['**/test/**/*.[t|j]s'],

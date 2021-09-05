@@ -357,7 +357,7 @@ The default mechanism of resolution of an interpolated property is simple dot-no
 
 In addition to `context`, actions have a special property called `results` that can be used for interpolation. Read more about results context [here](tbd)
 
-## Events
+### Events
 
 The rules engine is also an event emitter. There are 4 types of events you can listen to
 

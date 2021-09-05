@@ -1,13 +1,15 @@
-type UnaryAsync = (arg: any) => unknown | Promise<unknown>;
+type UnaryFunction = (arg: any) => MaybePromise<unknown>;
 
-type Facts = Record<string, UnaryAsync>;
-type Actions = Record<string, UnaryAsync>;
+type Facts = Record<string, UnaryFunction>;
+type Actions = Record<string, UnaryFunction>;
 type Rules = Record<string, Rule>;
-type Rule = {
+export type Rule = {
   when: FactMap[];
   then?: RuleActions | Rule | (Rule & RuleActions);
   otherwise?: RuleActions | Rule | (Rule & RuleActions);
 };
+
+type MaybePromise<T> = T | Promise<T>;
 
 type Action = {
   type: string;
@@ -29,16 +31,17 @@ interface ValidatorResult {
   result: boolean;
 }
 
-type Validator = (subject: any, schema: any) => ValidatorResult;
+type Validator = (subject: any, schema: any) => MaybePromise<ValidatorResult>;
 
 type Unsubscribe = () => void;
 
 type Options = {
   validator: Validator;
   facts?: Facts;
-  actions: Actions;
+  actions?: Actions;
   rules?: Rules;
   pattern?: RegExp;
+  resolver?: (path: string) => any;
 };
 
 type StartingFactMapEvent = {
@@ -137,21 +140,15 @@ type PatchFunction<T> = (o: T) => T;
 
 type Patch<T> = PatchFunction<T> | Partial<T>;
 
-interface RulesEngine {
+export interface RulesEngine {
   setRules(rules: Patch<Rules>): void;
   setActions(actions: Patch<Actions>): void;
   setFacts(facts: Patch<Facts>): void;
-  run(context: Context): Promise<void>;
-  off(
-    event: 'debug' | 'error' | 'start' | 'complete',
-    subscriber: Subscriber,
-  ): void;
+  run(context?: Context): Promise<void>;
   on(event: 'debug', subscriber: DebugSubscriber): Unsubscribe;
   on(event: 'start', subscriber: StartSubscriber): Unsubscribe;
   on(event: 'complete', subscriber: CompleteSubscriber): Unsubscribe;
   on(event: 'error', subscriber: ErrorSubscriber): Unsubscribe;
 }
 
-declare function createRulesEngine(options: Options): RulesEngine;
-
-export default createRulesEngine;
+export function createRulesEngine(options: Options): RulesEngine;
