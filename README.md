@@ -407,7 +407,7 @@ interface RulesEngine {
   on('error', subscriber: ErrorSubscriber): Unsubscribe
   on('start', subscriber: StartSubscriber): Unsubscribe
   on('complete', subscriber: CompleteSubscriber): Unsubscribe
-  run(context: Record<string, any>): Promise<void>;
+  run(context: Record<string, any>): Promise<EngineResults>;
 }
 
 type PatchFunction<T> = (o: T) => T;

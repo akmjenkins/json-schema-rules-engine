@@ -17,7 +17,11 @@ describe('rules engine', () => {
   it('should execute a rule', async () => {
     const rules = {
       salutation: {
-        when: [{ firstName: { is: { type: 'string', pattern: '^J' } } }],
+        when: [
+          {
+            firstName: { is: { type: 'string', pattern: '^J' } },
+          },
+        ],
         then: {
           actions: [{ type: 'log', params: { message: 'Hi friend!' } }],
         },
@@ -30,7 +34,6 @@ describe('rules engine', () => {
     await engine.run({ firstName: 'John' });
     expect(log).toHaveBeenCalledWith({ message: 'Hi friend!' });
     log.mockClear();
-    await engine.run({ firstName: 'Bill' });
     expect(log).not.toHaveBeenCalled();
     expect(call).toHaveBeenCalledWith({ message: 'Who are you?' });
   });

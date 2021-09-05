@@ -20,8 +20,11 @@ type RuleActions = {
   actions: Action[];
 };
 
-export type FactMap = Record<string, Condition>;
-export type Condition = {
+interface FactMap {
+  [fact: string]: Evaluator;
+}
+
+export type Evaluator = {
   params?: Record<string, any>;
   path?: string;
   is: Record<string, any>;
@@ -110,6 +113,21 @@ type ActionExecutionError = {
   error: Error;
 };
 
+type FactMapResult = {
+  [key: string]: {
+    result: boolean;
+    value: any;
+    resolved: any;
+  };
+};
+
+type RuleResult = {
+  actions?: Record<string, Action[]>;
+  results?: Record<string, Record<string, FactMapResult>>;
+};
+
+type EngineResults = Record<string, RuleResult>;
+
 export type DebugEvent =
   | StartingFactMapEvent
   | StartingFactEvent
@@ -127,6 +145,7 @@ export type StartEvent = {
 };
 export type CompleteEvent = {
   context: Context;
+  results: EngineResults;
 };
 
 export type DebugSubscriber = (event: DebugEvent) => void;
@@ -158,7 +177,7 @@ export interface RulesEngine {
   setRules(rules: Patch<Rules>): void;
   setActions(actions: Patch<Actions>): void;
   setFacts(facts: Patch<Facts>): void;
-  run(context?: Context): Promise<void>;
+  run(context?: Context): Promise<EngineResults>;
   on(event: 'debug', subscriber: DebugSubscriber): Unsubscribe;
   on(event: 'start', subscriber: StartSubscriber): Unsubscribe;
   on(event: 'complete', subscriber: CompleteSubscriber): Unsubscribe;
