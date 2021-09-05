@@ -11,7 +11,7 @@ _NBD: It actually doesn't **have** to use JSON Schema, but it's suggested_
 - Zero-dependency, extremely lightweight (under 2kb minzipped)
 - Runs everywhere
 - Nested conditions allow for controlling rule evaluation order
-- Memoization makes it fast
+- [Memoization] makes it fast
 - No thrown errors - errors are emitted, never thrown
 
 ## Installation
@@ -27,7 +27,7 @@ or, use it directly in the browser
 ```html
 <script src="https://cdn.jsdelivr.net/npm/json-schema-rules-engine"></script>
 <script>
-  const engine = jsonSchemaRulesEngine({ facts, actions, rules, validator });
+  const engine = jsonSchemaRulesEngine(validator, { facts, actions, rules });
 </script>
 ```
 
@@ -93,7 +93,7 @@ const validator = async (subject, schema) => {
   return { result };
 };
 
-const engine = createRulesEngine({ facts, rules, actions, validator });
+const engine = createRulesEngine(validator, { facts, rules, actions });
 
 engine.run({
   hotTemp: 20,
@@ -169,6 +169,8 @@ const weather = async ({ query, appId, units }) => {
 };
 ```
 
+It's important to note that all functional facts are memoized during each run of the rule engine, based on **shallow equality** of their argument. Currently, functions that accept an argument that contains values that are objects or arrays are not memoized. This will be fixed in an upcoming release.
+
 Static facts are simply the values of the context object
 
 ### Actions
@@ -227,7 +229,7 @@ engine.run({ age: 32, name: 'Joe' }); // fires the log action with { message: 'H
 
 #### Nesting Rules
 
-The `then` or `otherwise` property can consist of either `actions`, but it can also contain another `when` clause. All functional facts in all [FactMaps](#factmaps) are evaluated simultaneously. By nesting `when`'s, you can cause facts to be executed serially.
+The `then` or `otherwise` property can consist of either `actions`, but it can also contain a nested rule. All functional facts in all [FactMaps](#factmaps) are evaluated simultaneously. By nesting `when`'s, you can cause facts to be executed serially.
 
 ```js
 const myRule = {
@@ -300,7 +302,7 @@ const myRule = {
 
 #### FactMap
 
-A fact map is a plain object whose keys are facts (static or functional) and values are [`Evaluator`'s](#evaluator).
+A FactMap is a plain object whose keys are facts (static or functional) and values are [`Evaluator`'s](#evaluator).
 
 **NOTE: `factMapId` is a reserved word in a `FactMap`. It is used internally to allow easy access to the results of a `FactMap` for interpolation in the `then` or `otherwise` clauses. For this reason `factMapId` _CANNOT_ be given as a fact or context**.
 
@@ -384,10 +386,38 @@ The errors that can be emitted are:
 - `FactEvaluationError` - errors thrown during the evaluation of facts/results from facts
 - `ActionExecutionError` - errors thrown during the execution of actions
 
+## API/Types
+
+- **`createRulesEngine(validator: Validator, options?: Options): RulesEngine`**
+
+```ts
+type Options = {
+  facts?: Record<string,Fact>;
+  rules?: Record<string,Rule>;
+  actions?: Record<string,Action>;
+  pattern?: RegExp; // for interpolation
+  resolver?: (subject: Record<string,any>, path: string) => any
+};
+
+interface RulesEngine {
+  setRules(rulesPatch: Patch<Rules>): void;
+  setFacts(factsPatch: Patch<Facts>): void;
+  setActions(actionsPatch: Patch<Actions>): void;
+  on('debug', subscriber: DebugSubscriber): Unsubscribe
+  on('error', subscriber: ErrorSubscriber): Unsubscribe
+  on('start', subscriber: StartSubscriber): Unsubscribe
+  on('complete', subscriber: CompleteSubscriber): Unsubscribe
+  run(context: Record<string, any>): Promise<void>;
+}
+
+type PatchFunction<T> = (o: T) => T;
+type Patch<T> = PatchFunction<T> | Partial<T>;
+```
+
 ## License
 
 [MIT](./LICENSE)
 
 ## Contributing
 
-Help wanted! I'd like to really create great advanced types around the content of the facts, actions, and context given to the engine. Reach out [@akmjenkins](https://twitter.com/akmjenkins) or [akmjenkins@gmail.com](mailto:akmjenkins@gmail.com)
+Help wanted! I'd like to create really great advanced types around the content of the facts, actions, and context given to the engine. Reach out [@akmjenkins](https://twitter.com/akmjenkins) or [akmjenkins@gmail.com](mailto:akmjenkins@gmail.com)
