@@ -1,8 +1,8 @@
 export const createEvaluator =
   (validator, opts, emit, rule) =>
-  (id) =>
+  (factMapId) =>
   async ([factName, { params, path, is }]) => {
-    const onError = (params) => emit('error', { ...params, rule, id });
+    const onError = (params) => emit('error', { ...params, rule, factMapId });
 
     const fact = opts.facts[factName] || opts.context[factName];
     try {

@@ -3,8 +3,8 @@ import { createEvaluator } from './evaluator';
 export const createFactMapProcessor = (validator, opts, emit) => (rule) => {
   const evaluator = createEvaluator(validator, opts, emit, rule);
   return async (factMap, index) => {
-    // id is a reserved word
-    const { id = index, ...map } = factMap;
+    // factMapId is a reserved word
+    const { factMapId = index, ...map } = factMap;
 
     // flags for if there was an error processing the fact map
     // and if all evaluations in the fact map passed
@@ -12,7 +12,7 @@ export const createFactMapProcessor = (validator, opts, emit) => (rule) => {
     let passed = true;
 
     const results = (
-      await Promise.all(Object.entries(map).map(evaluator(id)))
+      await Promise.all(Object.entries(map).map(evaluator(factMapId)))
     ).reduce((acc, { factName, ...rest }) => {
       if (error) return acc;
       error = error || !!rest.error;
@@ -23,7 +23,7 @@ export const createFactMapProcessor = (validator, opts, emit) => (rule) => {
 
     // return the results in the same form they were passed in
     return {
-      [id]: {
+      [factMapId]: {
         ...results,
         __passed: passed,
         __error: error,

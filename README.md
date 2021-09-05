@@ -233,7 +233,7 @@ The `then` or `otherwise` property can consist of either `actions`, but it can a
 const myRule = {
   when: [
     {
-      id: 'weatherCondition',
+      factMapId: 'weatherCondition',
       weather: {
         params: {
           query: '{{city}}',
@@ -302,7 +302,7 @@ const myRule = {
 
 A fact map is a plain object whose keys are facts (static or functional) and values are [`Evaluator`'s](#evaluator).
 
-NOTE: `id` is a reserved word in a `FactMap`. It is used internally to allow easy access to the results of a `FactMap` for interpolation in the `then` or `otherwise` clauses.
+**NOTE: `factMapId` is a reserved word in a `FactMap`. It is used internally to allow easy access to the results of a `FactMap` for interpolation in the `then` or `otherwise` clauses. For this reason `factMapId` _CANNOT_ be given as a fact or context**.
 
 #### Evaluator
 
