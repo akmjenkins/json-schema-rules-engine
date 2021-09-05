@@ -8,8 +8,8 @@ const CLEAN_QUOTES_REGEX = /^\s*(['"]?)(.*?)(\1)\s*$/; // utility to dynamically
 const parts = (path) =>
   path.match(SPLIT_REGEX).map((p) => p.replace(CLEAN_QUOTES_REGEX, '$2'));
 
-export const get = (obj, path, def) =>
-  parts(path).reduce((acc, part) => (!acc ? acc : acc[part]), obj) || def;
+export const get = (obj, path) =>
+  parts(path).reduce((acc, part) => (!acc ? acc : acc[part]), obj);
 
 const shallowEqual = (a, b) => {
   if (a === b) return true;

@@ -1,8 +1,8 @@
 type UnaryFunction = (arg: any) => MaybePromise<unknown>;
 
-type Facts = Record<string, UnaryFunction>;
-type Actions = Record<string, UnaryFunction>;
-type Rules = Record<string, Rule>;
+export type Facts = Record<string, UnaryFunction>;
+export type Actions = Record<string, UnaryFunction>;
+export type Rules = Record<string, Rule>;
 export type Rule = {
   when: FactMap[];
   then?: RuleActions | Rule | (Rule & RuleActions);
@@ -20,8 +20,8 @@ type RuleActions = {
   actions: Action[];
 };
 
-type FactMap = Record<string, Condition>;
-type Condition = {
+export type FactMap = Record<string, Condition>;
+export type Condition = {
   params?: Record<string, any>;
   path?: string;
   is: Record<string, any>;
@@ -33,15 +33,21 @@ interface ValidatorResult {
 
 type Validator = (subject: any, schema: any) => MaybePromise<ValidatorResult>;
 
-type Unsubscribe = () => void;
+export type Unsubscribe = () => void;
 
 type Options = {
-  validator: Validator;
   facts?: Facts;
   actions?: Actions;
   rules?: Rules;
   pattern?: RegExp;
-  resolver?: (path: string) => any;
+  resolver?: (subject: any, path: string) => any;
+};
+
+export type JobConstruct = EngineOptions & {
+  rules: Rules;
+  facts: Facts;
+  actions: Actions;
+  context: Context;
 };
 
 type StartingFactMapEvent = {
@@ -104,29 +110,37 @@ type ActionExecutionError = {
   error: Error;
 };
 
-type DebugEvent =
+export type DebugEvent =
   | StartingFactMapEvent
   | StartingFactEvent
   | ExecutedFactEvent
   | EvaluatedFactEvent;
-type ErrorEvent =
+export type ErrorEvent =
   | FactEvaluationError
   | FactExecutionError
   | ActionExecutionError;
-type StartEvent = {
+export type StartEvent = {
   context: Context;
   facts: Facts;
   rules: Rules;
   actions: Actions;
 };
-type CompleteEvent = {
+export type CompleteEvent = {
   context: Context;
 };
 
-type DebugSubscriber = (event: DebugEvent) => void;
-type ErrorSubscriber = (event: ErrorEvent) => void;
-type StartSubscriber = (event: StartEvent) => void;
-type CompleteSubscriber = (event: CompleteEvent) => void;
+export type DebugSubscriber = (event: DebugEvent) => void;
+export type ErrorSubscriber = (event: ErrorEvent) => void;
+export type StartSubscriber = (event: StartEvent) => void;
+
+export type EventType = 'debug' | 'start' | 'complete' | 'error';
+
+export type EventMap = {
+  debug: DebugSubscriber;
+  error: ErrorSubscriber;
+};
+
+export type CompleteSubscriber = (event: CompleteEvent) => void;
 
 type Subscriber =
   | DebugSubscriber
@@ -134,7 +148,7 @@ type Subscriber =
   | StartSubscriber
   | CompleteSubscriber;
 
-type Context = Record<string, any>;
+export type Context = Record<string, any>;
 
 type PatchFunction<T> = (o: T) => T;
 
@@ -151,4 +165,7 @@ export interface RulesEngine {
   on(event: 'error', subscriber: ErrorSubscriber): Unsubscribe;
 }
 
-export function createRulesEngine(options: Options): RulesEngine;
+export function createRulesEngine(
+  validator: Validator,
+  options: Options,
+): RulesEngine;

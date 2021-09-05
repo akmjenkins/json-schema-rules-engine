@@ -14,7 +14,11 @@ const action = {
   required: ['type'],
 };
 
-const factMap = { type: 'object', patternProperties: { '.': evaluator } };
+const factMap = {
+  type: 'object',
+  properties: { id: { type: 'string' } },
+  patternProperties: { '.': evaluator },
+};
 const actions = { type: 'array', items: action };
 const when = { type: 'array', items: factMap };
 const then = { type: 'object', properties: { when, actions } };

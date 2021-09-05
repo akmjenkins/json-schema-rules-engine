@@ -9,8 +9,7 @@ describe('rules engine', () => {
   beforeEach(() => {
     log = jest.fn();
     call = jest.fn();
-    engine = createRulesEngine({
-      validator: createAjvValidator(),
+    engine = createRulesEngine(createAjvValidator(), {
       actions: { log, call },
     });
   });

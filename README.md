@@ -88,8 +88,8 @@ const actions = {
 // validate using a JSON schema via AJV
 const ajv = new Ajv();
 const validator = async (subject, schema) => {
-  const validate = ajv.compile(schema);
-  const result = await validate(subject);
+  const validate = await ajv.compile(schema);
+  const result = validate(subject);
   return { result };
 };
 
@@ -119,49 +119,29 @@ engine.run({
 
 ## Validator
 
-The thing about `json-schema-rules-engine` is that you don't have to use JSON schema (but you are highly encouraged to!)
+The validator is what makes `json-schema-rules-engine` so powerful. The validator is passed the resolved fact value and the schema (the value of the `is` property of an [`evaluator`]) and returns (optionally asynchronously) a `ValidatorResult`:
 
-You **must** provide a validator when creating a rules engine. We haven't provided one in the interest of keeping this package unopinionated and small, but here's a great one to use:
+```ts
+type ValidatorResult = {
+  result: boolean;
+};
+```
+
+If you want to use `json-schema-rules-engine` as was originally envisioned - to allow encoding of boolean logic by means of JSON Schema - then this is a great validator to use:
 
 ```js
 import Ajv from 'Ajv';
 const ajv = new Ajv();
 const validator = async (subject, schema) => {
-  const validate = ajv.compile(schema);
-  const result = await validate(subject);
+  const validate = await ajv.compile(schema);
+  const result = validate(subject);
   return { result };
 };
+
+const engine = createRulesEngine(validator);
 ```
 
-The validator must return an object with a `result` key that has a `boolean`. It can run async. It is used to evaluate a fact at runtime, and is passed the fact value and the schema (or otherwise serializable JSON) you have defined in your rules
-
-```js
-const rule = {
-  myRule: {
-    when: [
-      {
-        firstName: {
-          is: {
-            type: 'string',
-            pattern: '^Joe',
-          },
-        },
-      },
-    ];
-  }
-}
-
-engine.run({firstName: 'Bill'})
-
-// the validator you provided is called like this:
-const { result, ...rest } = validator(
-  'Bill',
-  {
-    type: 'string',
-    pattern: '^Joe',
-  }
-);
-```
+You can see by abstracting the JSON Schema part away from the core rules engine (by means of the `validator`) this engine can actually use **anything** to evaluate a property against. The validator is why `json-schema-rules-engine` is so small and so powerful.
 
 ### Context
 
@@ -253,8 +233,8 @@ The `then` or `otherwise` property can consist of either `actions`, but it can a
 const myRule = {
   when: [
     {
+      id: 'weatherCondition',
       weather: {
-        name: 'myWeatherFact',
         params: {
           query: '{{city}}',
           appId: '{{apiKey}}',
@@ -274,7 +254,7 @@ const myRule = {
         forecast: {
           params: {
             appId: '{{apiKey}}',
-            coord: '{{results.myWeatherFact.value.coord}}' // interpolate a value returned from the first fact
+            coord: '{{results.weatherCondition.weather.value.coord}}' // interpolate a value returned from the first fact
           },
           path: 'daily',
           is: {
@@ -320,7 +300,9 @@ const myRule = {
 
 #### FactMap
 
-A fact map is a plain object whose keys are facts (static or functional) and values are [`Evaluator`'s](#evaluator)
+A fact map is a plain object whose keys are facts (static or functional) and values are [`Evaluator`'s](#evaluator).
+
+NOTE: `id` is a reserved word in a `FactMap`. It is used internally to allow easy access to the results of a `FactMap` for interpolation in the `then` or `otherwise` clauses.
 
 #### Evaluator
 
@@ -344,8 +326,6 @@ const myFactMap = {
   },
 };
 ```
-
-You can also specify a `name` as a way to more easily interpolate the result from the
 
 ### Interpolation
 
