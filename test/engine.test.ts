@@ -34,6 +34,7 @@ describe('rules engine', () => {
     await engine.run({ firstName: 'John' });
     expect(log).toHaveBeenCalledWith({ message: 'Hi friend!' });
     log.mockClear();
+    await engine.run({ firstName: 'Bill' });
     expect(log).not.toHaveBeenCalled();
     expect(call).toHaveBeenCalledWith({ message: 'Who are you?' });
   });

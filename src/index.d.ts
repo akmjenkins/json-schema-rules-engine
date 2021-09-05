@@ -4,7 +4,7 @@ export type Facts = Record<string, UnaryFunction>;
 export type Actions = Record<string, UnaryFunction>;
 export type Rules = Record<string, Rule>;
 export type Rule = {
-  when: FactMap[];
+  when: FactMap[] | NamedFactMap;
   then?: RuleActions | Rule | (Rule & RuleActions);
   otherwise?: RuleActions | Rule | (Rule & RuleActions);
 };
@@ -19,6 +19,10 @@ type Action = {
 type RuleActions = {
   actions: Action[];
 };
+
+interface NamedFactMap {
+  [named: string]: FactMap;
+}
 
 interface FactMap {
   [fact: string]: Evaluator;

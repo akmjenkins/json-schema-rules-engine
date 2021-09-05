@@ -6,10 +6,20 @@ export const createRuleRunner = (validator, opts, emit) => {
   const processor = createFactMapProcessor(validator, opts, emit);
   const executor = createActionExecutor(opts, emit);
   return async ([rule, { when, ...rest }]) => {
+    // interpolated can be an array FactMap[] OR an object NamedFactMap
+    const interpolated = interpolateDeep(
+      when,
+      opts.context,
+      opts.pattern,
+      opts.resolver,
+    );
+
     const ruleResults = await Promise.all(
-      interpolateDeep(when, opts.context, opts.pattern, opts.resolver).map(
-        processor(rule),
-      ),
+      Array.isArray(interpolated)
+        ? interpolated.map(processor(rule))
+        : Object.entries(interpolated).map(([factMap, id]) =>
+            processor(rule)(factMap, id),
+          ),
     );
 
     // create the context and evaluate whether the rules have passed or errored in a single loop

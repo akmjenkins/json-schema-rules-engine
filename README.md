@@ -190,7 +190,7 @@ const engine = createRulesEngine({ actions: saveAuditRecord });
 
 ### Rules
 
-Rules are written as **when**, **then**, **otherwise**. A when clause consists of an array of [`FactMap`s](#factmap). If any of the `FactMap`s evaluate to true, the properties of the `then` clause of the rule are evaluated. If not, the `otherwise` clause is evaluated.
+Rules are written as **when**, **then**, **otherwise**. A when clause consists of an array of [`FactMap`s](#factmap), or an object whose values are [`FactMap`s](#factmap). If any of the `FactMap`s in the object or array evaluate to true, the properties of the `then` clause of the rule are evaluated. If not, the `otherwise` clause is evaluated.
 
 ```js
 const myRule = {
@@ -235,7 +235,6 @@ The `then` or `otherwise` property can consist of either `actions`, but it can a
 const myRule = {
   when: [
     {
-      factMapId: 'weatherCondition',
       weather: {
         params: {
           query: '{{city}}',
@@ -256,7 +255,7 @@ const myRule = {
         forecast: {
           params: {
             appId: '{{apiKey}}',
-            coord: '{{results.weatherCondition.weather.value.coord}}' // interpolate a value returned from the first fact
+            coord: '{{results[0].weather.value.coord}}' // interpolate a value returned from the first fact
           },
           path: 'daily',
           is: {
@@ -303,8 +302,6 @@ const myRule = {
 #### FactMap
 
 A FactMap is a plain object whose keys are facts (static or functional) and values are [`Evaluator`'s](#evaluator).
-
-**NOTE: `factMapId` is a reserved word in a `FactMap`. It is used internally to allow easy access to the results of a `FactMap` for interpolation in the `then` or `otherwise` clauses. For this reason `factMapId` _CANNOT_ be given as a fact or context**.
 
 #### Evaluator
 
