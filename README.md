@@ -129,9 +129,12 @@ engine.run({
 - [Facts](#facts)
 - [Actions](#actions)
 - [Rules](#rules)
+  - [Nesting](#nesting-rules)
   - [FactMap](#factmap)
   - [Evaluators](#evaluators)
-- [Interpolation](#context)
+- [Resolver](#resolver)
+- [Interpolation](#interpolation)
+  - [Results Context](#results-context)
 - [Events](#events)
 
 ## Validator
@@ -344,17 +347,44 @@ const myFactMap = {
 };
 ```
 
+### Resolver
+
+By default, `json-schema-rules-engine` uses dot notation - like [property-expr](https://github.com/jquense/expr) or [lodash's get](https://lodash.com/docs/4.17.15#get) - to retrieve an innter value from an object or array via `path`. This can be changed by the `resolver` option. For example, if you wanted to use [json pointer](https://www.npmjs.com/package/jsonpointer), you could do it like this:
+
+```js
+import { get } from 'jsonpointer';
+
+const engine = createRulesEngine(validator, { resolver: get });
+
+engine.setRules({
+  myRule: {
+    weather: {
+      params: {
+        query: '{{/city}}',
+        appId: '{{/apiKey}}',
+        units: '{{/units}}',
+      },
+      path: '/main/temp',
+      is: {
+        type: 'number',
+        minimum: '{{/hotTemp}}',
+      },
+    },
+  },
+});
+```
+
+**NOTE:** the `resolver` is also used to retrieve values for [`interpolation`](#interpolation). If using `jsonpointer` notation, this means that interpolations must be prefixed with a `/`.
+
 ### Interpolation
 
 Interpolation is configurable by passing the `pattern` option. By default, it uses the [handlebars](https://handlebarsjs.com/)-style pattern of `{{variable}}`.
 
 Anything passed in via the context object given to `engine.run` is available to be interpolated _anywhere_ in a rule.
 
-The default mechanism of resolution of an interpolated property is simple dot-notation like [property-expr](https://github.com/jquense/expr). Although if you feel like using [json path](https://www.npmjs.com/package/jsonpath) just pass it in as a `resolver` option when creating the rules engine.
+In addition to `context`, actions have a special property called [`results`](#results-context) that can be used for interpolation in `then` and `otherwise` clauses.
 
-In addition to `context`, actions have a special property called `results` that can be used for interpolation in `then` and `otherwise` clauses. Read more about results context [here](tbd)
-
-### Results Context
+#### Results Context
 
 The (top level) `when` clause of a rule can interpolate things from `context`. But the `then` and `otherwise` have a special property available to them called `results` that you can interpolate. This is where defining FactMap as arrays or objects also comes into play. Consider the following rule:
 
