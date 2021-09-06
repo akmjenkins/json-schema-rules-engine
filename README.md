@@ -24,7 +24,7 @@ Three reasons:
 - Zero-dependency, extremely lightweight (under 2kb minzipped)
 - Runs everywhere
 - Nested conditions allow for controlling rule evaluation order
-- [Memoization] makes it fast
+- Memoization makes it fast
 - No thrown errors - errors are emitted, never thrown
 
 ## Installation
@@ -345,13 +345,105 @@ const myFactMap = {
 
 ### Interpolation
 
-Interpolation is configurable by passing the `pattern` option. By default, it uses [handlebars](https://handlebarsjs.com/)
+Interpolation is configurable by passing the `pattern` option. By default, it uses the [handlebars](https://handlebarsjs.com/)-style pattern of `{{variable}}`.
 
 Anything passed in via the context object given to `engine.run` is available to be interpolated _anywhere_ in a rule.
 
-The default mechanism of resolution of an interpolated property is simple dot-notation [like property-expr](https://github.com/jquense/expr). Although if you feel like using [json path](https://www.npmjs.com/package/jsonpath) just pass it in as a `resolver` option when creating the rules engine.
+The default mechanism of resolution of an interpolated property is simple dot-notation like [property-expr](https://github.com/jquense/expr). Although if you feel like using [json path](https://www.npmjs.com/package/jsonpath) just pass it in as a `resolver` option when creating the rules engine.
 
-In addition to `context`, actions have a special property called `results` that can be used for interpolation. Read more about results context [here](tbd)
+In addition to `context`, actions have a special property called `results` that can be used for interpolation in `then` and `otherwise` clauses. Read more about results context [here](tbd)
+
+### Results Context
+
+The (top level) `when` clause of a rule can interpolate things from `context`. But the `then` and `otherwise` have a special property available to them called `results` that you can interpolate. This is where defining FactMap as arrays or objects also comes into play. Consider the following rule:
+
+```js
+const rules = {
+  dailyTemp: {
+    when: [
+      {
+        weather: {
+          params: {
+            query: '{{city}}',
+            appId: '{{apiKey}}',
+            units: '{{units}}',
+          },
+          path: 'main.temp',
+          is: {
+            type: 'number',
+            minimum: '{{hotTemp}}',
+          },
+        },
+      },
+    ],
+    then: {
+      actions: [
+        {
+          type: 'log',
+          params: {
+            message:
+              'Quite hot out today - going to be {{results[0].weather.resolved}}!',
+          },
+        },
+      ],
+    },
+    otherwise: {
+      actions: [
+        {
+          type: 'log',
+          params: {
+            message:
+              'Brrr, bundle up - only going to be {{resilts[0].weather.resolved}}',
+          },
+        },
+      ],
+    },
+  },
+};
+```
+
+If we were to name the FactMap using an object instead of an array, we could use the key of the FactMap for the interpolation:
+
+```js
+const rules = {
+  dailyTemp: {
+    when: {
+      myWeatherCondition: {
+        weather: {
+          params: {
+            query: '{{city}}',
+            appId: '{{apiKey}}',
+            units: '{{units}}',
+          },
+          path: 'main.temp',
+          is: {
+            type: 'number',
+            minimum: '{{hotTemp}}',
+          },
+        },
+      },
+    },
+    then: {
+      actions: [
+        {
+          type: 'log',
+          params: {
+            message:
+              'Quite hot out today - going to be {{results.myWeatherCondition.weather.resolved}}!',
+          },
+        },
+      ],
+    },
+  },
+};
+```
+
+Two things to note:
+
+1. `results` is local to the rule that it's operating in. Different rules have different results.
+2. There are two properties on the fact name (`weather` in the above case):
+   a. `value` - the value returned from the function (or the value from context if using a static fact)
+   b. `resolved` - the value being evaluated. If there is no `path`, value and `resolved` are the same
 
 ### Events
 
@@ -367,7 +459,9 @@ The rules engine is also an event emitter. There are 4 types of events you can l
 Emitted as soon as you call `run` on the engine
 
 ```js
-engine.on('start', ({context,facts,rules,actions}) => { ... })
+engine.on('start', ({ context, facts, rules, actions }) => {
+  /* ... */
+});
 ```
 
 ### complete
@@ -375,7 +469,9 @@ engine.on('start', ({context,facts,rules,actions}) => { ... })
 Emitted when all rules have been evaluated AND all actions have been executed
 
 ```js
-engine.on('complete', ({context}) => { ... })
+engine.on('complete', ({ context, results }) => {
+  /* ... */
+});
 ```
 
 ### debug
@@ -383,7 +479,9 @@ engine.on('complete', ({context}) => { ... })
 Useful to monitor the internal execution and evaluation of facts and actions
 
 ```js
-engine.on('debug',(arg) => { ... })
+engine.on('debug', ({ type, ...rest }) => {
+  /* ... */
+});
 ```
 
 ### error
@@ -391,7 +489,9 @@ engine.on('debug',(arg) => { ... })
 Any errors thrown during fact execution/evaluation or action execution are emitted via `error`
 
 ```js
-engine.on('error',({type, ...rest}) => { ... })
+engine.on('error', ({ type, ...rest }) => {
+  /* ... */
+});
 ```
 
 The errors that can be emitted are:
