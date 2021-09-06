@@ -1,4 +1,4 @@
-import { createRulesEngine, RulesEngine } from '../src';
+import createRulesEngine, { RulesEngine } from '../src';
 import { createAjvValidator } from './validators';
 
 describe('rules engine', () => {

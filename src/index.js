@@ -1,2 +1,2 @@
-export { createRulesEngine } from './engine';
-export { ruleSchema } from './schemas';
+import { createRulesEngine } from './engine';
+export default createRulesEngine;

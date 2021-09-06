@@ -195,7 +195,7 @@ export interface RulesEngine {
   on(event: 'error', subscriber: ErrorSubscriber): Unsubscribe;
 }
 
-export function createRulesEngine(
+export default function createRulesEngine(
   validator: Validator,
   options: Options,
 ): RulesEngine;
