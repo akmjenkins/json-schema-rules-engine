@@ -2,14 +2,13 @@ name: Publish
 
 on:
   push:
-    tags: 
-        - v*
+    branches: [testbranch] 
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
         with:
           ref: testbranch
 
@@ -18,15 +17,15 @@ jobs:
           path: '**/node_modules'
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
 
-      # - name: Install packages
-      #   run: yarn
+      - name: Install packages
+        run: yarn
 
-      # - name: Create Build
-      #   run: yarn build
+      - name: Create Build
+        run: yarn build
 
-      # - uses: JS-DevTools/npm-publish@v1      
-      #   with:
-      #     token: ${{ secrets.NPM_TOKEN }}  
-      #     dryrun: true
+      - uses: JS-DevTools/npm-publish@v1      
+        with:
+          token: ${{ secrets.NPM_TOKEN }}  
+          dryrun: true
 
   
