@@ -20,18 +20,18 @@ jobs:
       - name: Install packages
         run: yarn
 
-      - name: Run Typescript Checks
+      - name: Run Lint
         run: yarn lint
 
       - name: Run Tests
-        run: yarn test
+        run: yarn test:ci
 
       - name: Coveralls
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.COVERALLS_GITHUB_TOKEN }}        
 
-      - name: Build
+      - name: Create Build
         run: yarn build
 
   
