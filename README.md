@@ -1,5 +1,10 @@
 # JSON Schema Rules Engine
 
+[![npm version](https://img.shields.io/npm/v/json-schema-rules-engine)](https://npmjs.org/package/akmjenkins/json-schema-rules-engine)
+[![Coverage Status](https://coveralls.io/repos/github/akmjenkins/json-schema-rules-engine/badge.svg)](https://coveralls.io/github/akmjenkins/json-schema-rules-engine)
+![Build Status](https://github.com/akmjenkins/json-schema-rules-engine/actions/workflows/test.yaml/badge.svg)
+[![Bundle Phobia](https://badgen.net/bundlephobia/minzip/json-schema-rules-engine)](https://bundlephobia.com/result?p=json-schema-rules-engine)
+
 A highly configurable rules engine based on [JSON Schema](https://json-schema.org/). Inspired by the popular [JSON rules engine](https://github.com/CacheControl/json-rules-engine).
 
 _NBD: It actually doesn't **have** to use JSON Schema, but it's suggested_
