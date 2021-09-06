@@ -18,16 +18,15 @@ jobs:
           path: '**/node_modules'
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
 
-      - name: Install packages
-        run: yarn
+      # - name: Install packages
+      #   run: yarn
 
-      - name: Create Build
-        run: yarn build
+      # - name: Create Build
+      #   run: yarn build
 
-      - name: Publish
-      - uses: JS-DevTools/npm-publish@v1      
-        with:
-          token: ${{ secrets.NPM_TOKEN }}  
-          dryrun: true
+      # - uses: JS-DevTools/npm-publish@v1      
+      #   with:
+      #     token: ${{ secrets.NPM_TOKEN }}  
+      #     dryrun: true
 
   
