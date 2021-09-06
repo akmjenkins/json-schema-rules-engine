@@ -14,11 +14,13 @@ export const createRuleRunner = (validator, opts, emit) => {
       opts.resolver,
     );
 
+    const process = processor(rule);
+
     const ruleResults = await Promise.all(
       Array.isArray(interpolated)
-        ? interpolated.map(processor(rule))
+        ? interpolated.map(process)
         : Object.entries(interpolated).map(([factMap, id]) =>
-            processor(rule)(factMap, id),
+            process(factMap, id),
           ),
     );
 

@@ -4,11 +4,12 @@ module.exports = {
     '^.+\\.ts?$': 'ts-jest',
   },
   transformIgnorePatterns: ['node_modules/(?!(node-fetch|fetch-blob)/)'],
+  collectCoverageFrom: ['./src/*.js'],
   coverageThreshold: {
     global: {
-      branches: 90,
-      functions: 90,
-      lines: 90,
+      branches: 50,
+      functions: 75,
+      lines: 75,
     },
   },
 };

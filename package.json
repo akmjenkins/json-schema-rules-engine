@@ -1,27 +1,24 @@
 {
   "name": "json-schema-rules-engine",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Rules engine based on JSON Schema",
   "main": "build/index.js",
   "author": "Adam Jenkins",
   "license": "MIT",
   "browser": "build/bundle.min.js",
-  "types": "index.d.ts",
+  "types": "build/index.d.ts",
   "keywords": [
     "json schema",
     "rules engine"
   ],
   "files": [
-    "build",
-    "index.d.ts"
+    "build"
   ],
   "scripts": {
-    "dist": "yarn lint && yarn test && yarn build",
     "clean": "rimraf build",
     "build": "yarn clean && yarn babel && rollup -c",
     "babel": "babel src -d build --copy-files --no-copy-ignored",
     "lint": "eslint src/",
-    "test:ci": "yarn test --coverage --coverageReporters=text-lcov | coveralls",
     "test": "jest"
   },
   "devDependencies": {
@@ -39,7 +36,6 @@
     "babel-jest": "^27.1.0",
     "benchmark": "^2.1.4",
     "benchmarkjs": "^0.1.8",
-    "coveralls": "^3.1.1",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-import-resolver-typescript": "^2.4.0",

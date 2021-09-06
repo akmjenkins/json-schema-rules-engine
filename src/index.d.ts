@@ -60,20 +60,23 @@ export type JobConstruct = EngineOptions & {
 type StartingFactMapEvent = {
   type: 'STARTING_FACT_MAP';
   rule: string;
-  index: number;
+  mapId: string | number;
 };
 
 type StartingFactEvent = {
   type: 'STARTING_FACT';
   rule: string;
-  index: number;
+  mapId: string | number;
+  factName: string;
 };
 
 type ExecutedFactEvent = {
   type: 'EXECUTED_FACT';
   rule: string;
-  index: number;
-  params: any;
+  mapId: string | number;
+  factName: string;
+  params?: any;
+  path?: string;
   value: any;
   resolved: any;
 };
@@ -81,7 +84,8 @@ type ExecutedFactEvent = {
 type EvaluatedFactEvent = {
   type: 'EVALUATED_FACT';
   rule: string;
-  index: number;
+  mapId: string | number;
+  factName: string;
   value: any;
   resolved: any;
   is: Record<string, any>;
@@ -91,6 +95,8 @@ type EvaluatedFactEvent = {
 type FactEvaluationError = {
   type: 'FactEvaluationError';
   rule: string;
+  mapId: string | number;
+  factName: string;
   error: Error;
   context: Context;
   factName: string;
@@ -103,7 +109,8 @@ type FactEvaluationError = {
 type FactExecutionError = {
   type: 'FactExecutionError';
   rule: string;
-  index: number;
+  mapId: string | number;
+  factName: string;
   error: Error;
   context: Context;
   factName: string;

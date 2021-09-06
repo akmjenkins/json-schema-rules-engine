@@ -1,8 +1,21 @@
 # JSON Schema Rules Engine
 
+[![npm version](https://img.shields.io/npm/v/json-schema-rules-engine)](https://npmjs.org/package/akmjenkins/json-schema-rules-engine)
+[![Coverage Status](https://coveralls.io/repos/github/akmjenkins/json-schema-rules-engine/badge.svg)](https://coveralls.io/github/akmjenkins/json-schema-rules-engine)
+![Build Status](https://github.com/akmjenkins/json-schema-rules-engine/actions/workflows/test.yaml/badge.svg)
+[![Bundle Phobia](https://badgen.net/bundlephobia/minzip/json-schema-rules-engine)](https://bundlephobia.com/result?p=json-schema-rules-engine)
+
 A highly configurable rules engine based on [JSON Schema](https://json-schema.org/). Inspired by the popular [JSON rules engine](https://github.com/CacheControl/json-rules-engine).
 
 _NBD: It actually doesn't **have** to use JSON Schema, but it's suggested_
+
+## Why?
+
+Three reasons:
+
+1. Schema validation of a data structure can be used to implement boolean logic
+2. Tools for JSON schema are everywhere and support is wide
+3. Custom operators (like those in JSON rules engine) aren't sustainable. You can either make a PR for a new operator that may or may not get merged OR you have to take on the ownership in your own codebase of building and maintaining custom operators. With `json-schema-rules-engine`, you can implement new logic immediately whenever the spec is published (thanks to very actively maintained projects like [AJV](https://github.com/ajv-validator/ajv)).
 
 ## Features
 
