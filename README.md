@@ -24,7 +24,7 @@ Three reasons:
 - Zero-dependency, extremely lightweight (under 2kb minzipped)
 - Runs everywhere
 - Nested conditions allow for controlling rule evaluation order
-- Memoization makes it fast
+- [Memoization makes it fast](#memoize)
 - No thrown errors - errors are emitted, never thrown
 
 ## Installation
@@ -136,7 +136,7 @@ engine.run({
 
 ## Validator
 
-The validator is what makes `json-schema-rules-engine` so powerful. The validator is passed the resolved fact value and the schema (the value of the `is` property of an [`evaluator`]) and returns (optionally asynchronously) a `ValidatorResult`:
+The validator is what makes `json-schema-rules-engine` so powerful. The validator is passed the resolved fact value and the schema (the value of the `is` property of an [`evaluator`](#evaluators) and asynchronously a `ValidatorResult`:
 
 ```ts
 type ValidatorResult = {
@@ -186,6 +186,7 @@ const weather = async ({ query, appId, units }) => {
 };
 ```
 
+<a name="memoize"></a>
 It's important to note that all functional facts are memoized during each run of the rule engine, based on **shallow equality** of their argument. Currently, functions that accept an argument that contains values that are objects or arrays are not memoized. This will be fixed in an upcoming release.
 
 Static facts are simply the values of the context object
@@ -440,10 +441,10 @@ const rules = {
 
 Two things to note:
 
-1. `results` is local to the rule that it's operating in. Different rules have different results.
+1. The `results` variable is local to the rule that it's operating in. Different rules have different results.
 2. There are two properties on the fact name (`weather` in the above case):
-   a. `value` - the value returned from the function (or the value from context if using a static fact)
-   b. `resolved` - the value being evaluated. If there is no `path`, value and `resolved` are the same
+   - `value` - the value returned from the function (or the value from context if using a static fact)
+   - `resolved` - the value being evaluated. If there is no `path`, value and `resolved` are the same
 
 ### Events
 
@@ -523,6 +524,8 @@ interface RulesEngine {
   on('complete', subscriber: CompleteSubscriber): Unsubscribe
   run(context: Record<string, any>): Promise<EngineResults>;
 }
+
+type Unsubscribe = () => void;
 
 type PatchFunction<T> = (o: T) => T;
 type Patch<T> = PatchFunction<T> | Partial<T>;
