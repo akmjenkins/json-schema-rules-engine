@@ -24,7 +24,12 @@ jobs:
         run: yarn lint
 
       - name: Run Tests
-        run: yarn test:ci
+        run: yarn test
+
+      - name: Coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.COVERALLS_GITHUB_TOKEN }}        
 
       - name: Build
         run: yarn build

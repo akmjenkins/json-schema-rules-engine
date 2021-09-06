@@ -19,7 +19,7 @@
     "build": "yarn clean && yarn babel && rollup -c",
     "babel": "babel src -d build --copy-files --no-copy-ignored",
     "lint": "eslint src/",
-    "test:ci": "yarn test --coverage --coverageReporters=text-lcov | coveralls",
+    "test:ci": "yarn test --coverage --coverageReporters=text-lcov",
     "test": "jest"
   },
   "devDependencies": {
@@ -37,7 +37,6 @@
     "babel-jest": "^27.1.0",
     "benchmark": "^2.1.4",
     "benchmarkjs": "^0.1.8",
-    "coveralls": "^3.1.1",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-import-resolver-typescript": "^2.4.0",
