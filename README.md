@@ -24,7 +24,7 @@ Three reasons:
 - Zero-dependency, extremely lightweight (under 2kb minzipped)
 - Runs everywhere
 - Nested conditions allow for controlling rule evaluation order
-- [Memoization makes it fast](#memoize)
+- [Memoization makes it fast](#memoization)
 - No thrown errors - errors are emitted, never thrown
 
 ## Installation
@@ -193,7 +193,7 @@ Static facts are simply the values of the context object
 
 #### Memoization
 
-It's important to note that all functional facts are memoized during an individual run of the rule engine - **but not between runs** - based on **shallow equality** of their argument.
+It's important to note that all functional facts are memoized during an individual run of the rule engine - **but not between runs** - based on **shallow equality** of their argument. This is to ensure that the same functional fact can be evaluated in multiple rules without that fact being called more than once (useful for aysnchronous facts to prevent multiple API calls).
 
 This means that functions that accept an argument that contains values that are objects or arrays **are not memoized by default**. But this can be configured using something like [lodash's isEqual](https://lodash.com/docs/4.17.15#isEqual)
 
@@ -236,6 +236,12 @@ const deeplyMemoizedFacts = memoRecord(
 );
 
 engine.setFacts(memoizedFacts);
+```
+
+If, for some reason, you do not want facts to be memoized during a run, then you can just pass a stub memoizer:
+
+```js
+const engine = createRulesEngine(validator, { memoizer: () => false });
 ```
 
 ### Actions
