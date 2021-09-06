@@ -7,6 +7,13 @@
   "license": "MIT",
   "browser": "build/bundle.min.js",
   "types": "build/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/akmjenkins/json-schema-rules-engine"
+  },
+  "bugs": {
+    "url": "https://github.com/akmjenkins/json-schema-rules-engine/issues"
+  },
   "keywords": [
     "json schema",
     "rules engine"
@@ -34,8 +41,6 @@
     "ajv": "^8.6.2",
     "babel-eslint": "^10.1.0",
     "babel-jest": "^27.1.0",
-    "benchmark": "^2.1.4",
-    "benchmarkjs": "^0.1.8",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-import-resolver-typescript": "^2.4.0",
