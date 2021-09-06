@@ -11,25 +11,10 @@ const parts = (path) =>
 export const get = (obj, path) =>
   parts(path).reduce((acc, part) => (!acc ? acc : acc[part]), obj);
 
-const shallowEqual = (a, b) => {
+export const shallowEqual = (a, b) => {
   if (a === b) return true;
   if (!a || !b) return false;
   const keysA = Object.keys(a);
   if (keysA.length !== Object.keys(b).length) return false;
   return keysA.every((k) => a[k] === b[k]);
 };
-
-export const memo =
-  (fn, check = shallowEqual, args, last) =>
-  (...inner) =>
-    args &&
-    inner.length === args.length &&
-    inner.every((a, i) => check(a, args[i]))
-      ? last
-      : (last = fn(...(args = inner)));
-
-export const memoRecord = (record) =>
-  Object.entries(record).reduce(
-    (acc, [k, v]) => ({ ...acc, [k]: memo(v) }),
-    {},
-  );

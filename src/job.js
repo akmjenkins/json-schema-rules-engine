@@ -1,9 +1,9 @@
 import { createRuleRunner } from './rule.runner';
-import { memoRecord } from './utils';
+import { memoRecord } from './memo';
 
 export const createJob = (validator, opts, emit) => {
   const { rules, facts, ...options } = opts;
-  const memoed = memoRecord(facts);
+  const memoed = memoRecord(facts, opts.memoizer);
   const checkRule = createRuleRunner(
     validator,
     { ...options, facts: memoed },

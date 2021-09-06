@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import createRulesEngine, { RulesEngine } from '../src';
 import { createAjvValidator } from './validators';
 
@@ -37,6 +38,61 @@ describe('rules engine', () => {
     await engine.run({ firstName: 'Bill' });
     expect(log).not.toHaveBeenCalled();
     expect(call).toHaveBeenCalledWith({ message: 'Who are you?' });
+  });
+
+  it('should memoize facts', async () => {
+    const facts = { f1: jest.fn() };
+    engine.setFacts(facts);
+    engine.setRules({
+      rule1: {
+        when: [
+          { f1: { params: { a: 1 }, is: {} } },
+          { f1: { params: { a: 1 }, is: {} } },
+          { f1: { params: { a: 2 }, is: {} } },
+        ],
+      },
+    });
+    await engine.run();
+    expect(facts.f1).toHaveBeenCalledTimes(2);
+    expect(facts.f1).toHaveBeenCalledWith({ a: 1 });
+    expect(facts.f1).toHaveBeenCalledWith({ a: 2 });
+  });
+
+  it('should deep equal memoize facts', async () => {
+    const facts = { f1: jest.fn() };
+    const rules = {
+      rule1: {
+        when: [
+          { f1: { params: { a: [1, 1] }, is: {} } },
+          { f1: { params: { a: [1, 1] }, is: {} } },
+          { f1: { params: { a: [1, 2] }, is: {} } },
+        ],
+      },
+    };
+
+    const memEngine = createRulesEngine(createAjvValidator(), {
+      memoizer: _.isEqual,
+      facts,
+      rules,
+    });
+
+    const regularEngine = createRulesEngine(createAjvValidator(), {
+      facts,
+      rules,
+    });
+
+    await regularEngine.run();
+    expect(facts.f1).toHaveBeenCalledTimes(3);
+    expect(facts.f1).toHaveBeenCalledWith({ a: [1, 1] });
+    expect(facts.f1).toHaveBeenCalledWith({ a: [1, 1] });
+    expect(facts.f1).toHaveBeenCalledWith({ a: [1, 2] });
+
+    facts.f1.mockClear();
+
+    await memEngine.run();
+    expect(facts.f1).toHaveBeenCalledTimes(2);
+    expect(facts.f1).toHaveBeenCalledWith({ a: [1, 1] });
+    expect(facts.f1).toHaveBeenCalledWith({ a: [1, 2] });
   });
 
   it('should access a property via path', async () => {

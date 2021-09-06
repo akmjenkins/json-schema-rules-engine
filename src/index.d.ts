@@ -47,6 +47,7 @@ type Options = {
   actions?: Actions;
   rules?: Rules;
   pattern?: RegExp;
+  memoizer?: <T>(a: T, b: T) => boolean;
   resolver?: (subject: any, path: string) => any;
 };
 

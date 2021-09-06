@@ -189,10 +189,54 @@ const weather = async ({ query, appId, units }) => {
 };
 ```
 
-<a name="memoize"></a>
-It's important to note that all functional facts are memoized during each run of the rule engine, based on **shallow equality** of their argument. Currently, functions that accept an argument that contains values that are objects or arrays are not memoized. This will be fixed in an upcoming release.
-
 Static facts are simply the values of the context object
+
+#### Memoization
+
+It's important to note that all functional facts are memoized during an individual run of the rule engine - **but not between runs** - based on **shallow equality** of their argument.
+
+This means that functions that accept an argument that contains values that are objects or arrays **are not memoized by default**. But this can be configured using something like [lodash's isEqual](https://lodash.com/docs/4.17.15#isEqual)
+
+```js
+import _ from 'lodash';
+
+const engine = createRulesEngine(validator, { memoizer: _.isEqual });
+```
+
+If you want any of your facts to be memoized **between** runs, feel free to use our memoization helpers before setting the facts
+
+```js
+import _ from 'lodash';
+import { memo, memoRecord } from 'json-schema-rules-engine/memo';
+
+// memoize a single function
+const memoizedFunction = memo((...args) => {
+  /* ... */
+});
+
+// deep equal memoize
+const deeplyMemoizedFunction = memo((...args) => {
+  /* ... */
+}, _.isEqual);
+
+// memoize an object whos values are functions
+const memoizedFacts = memoRecord({
+  weather: async (...args) => {
+    /* ... */
+  },
+});
+
+const deeplyMemoizedFacts = memoRecord(
+  {
+    weather: async (...args) => {
+      /* ... */
+    },
+  },
+  _.isEqual,
+);
+
+engine.setFacts(memoizedFacts);
+```
 
 ### Actions
 
@@ -541,6 +585,7 @@ type Options = {
   rules?: Record<string,Rule>;
   actions?: Record<string,Action>;
   pattern?: RegExp; // for interpolation
+  memoizer?: <T>(a: T, b: T) => boolean;
   resolver?: (subject: Record<string,any>, path: string) => any
 };
 
