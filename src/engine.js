@@ -26,14 +26,17 @@ export const createRulesEngine = (
     setRules: (next) => (rules = patch(next, rules)),
     run: async (context = {}) => {
       emit('start', { context, facts, rules, actions });
-      const execute = createJob(validator, {
-        ...options,
-        context,
-        facts,
-        rules,
-        actions,
+      const execute = createJob(
+        validator,
+        {
+          ...options,
+          context,
+          facts,
+          rules,
+          actions,
+        },
         emit,
-      });
+      );
 
       const results = await execute();
       emit('complete', { context, results });

@@ -1,22 +1,20 @@
 {
   "name": "json-schema-rules-engine",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Rules engine based on JSON Schema",
   "main": "build/index.js",
   "author": "Adam Jenkins",
   "license": "MIT",
   "browser": "build/bundle.min.js",
-  "types": "index.d.ts",
+  "types": "build/index.d.ts",
   "keywords": [
     "json schema",
     "rules engine"
   ],
   "files": [
-    "build",
-    "index.d.ts"
+    "build"
   ],
   "scripts": {
-    "dist": "yarn lint && yarn test && yarn build",
     "clean": "rimraf build",
     "build": "yarn clean && yarn babel && rollup -c",
     "babel": "babel src -d build --copy-files --no-copy-ignored",

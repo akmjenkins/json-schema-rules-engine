@@ -4,6 +4,14 @@ A highly configurable rules engine based on [JSON Schema](https://json-schema.or
 
 _NBD: It actually doesn't **have** to use JSON Schema, but it's suggested_
 
+## Why?
+
+Three reasons:
+
+1. Schema validation of a data structure can be used to implement boolean logic
+2. Tools for JSON schema are everywhere and support is wide
+3. Custom operators (like those in JSON rules engine) aren't sustainable. You can either make a PR for a new operator that may or may not get merged OR you have to take on the ownership in your own codebase of building and maintaining custom operators. With `json-schema-rules-engine`, you can implement new logic immediately whenever the spec is published (thanks to very actively maintained projects like [AJV](https://github.com/ajv-validator/ajv)).
+
 ## Features
 
 - Highly configurable - use any type of schema to express your logic (we strongly suggest JSON Schema)

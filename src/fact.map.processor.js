@@ -3,6 +3,8 @@ import { createEvaluator } from './evaluator';
 export const createFactMapProcessor = (validator, opts, emit) => (rule) => {
   const evaluator = createEvaluator(validator, opts, emit, rule);
   return async (factMap, id) => {
+    emit('debug', { type: 'STARTING_FACT_MAP', rule, mapId: id });
+
     // flags for if there was an error processing the fact map
     // and if all evaluations in the fact map passed
     let error = false;
@@ -17,6 +19,8 @@ export const createFactMapProcessor = (validator, opts, emit) => (rule) => {
       acc[factName] = rest;
       return acc;
     }, {});
+
+    emit('debug', { type: 'FINISHED_FACT_MAP', rule, mapId: id, results });
 
     // return the results in the same form they were passed in
     return {
