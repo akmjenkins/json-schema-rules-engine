@@ -24,7 +24,7 @@ jobs:
         run: yarn lint
 
       - name: Run Tests
-        run: yarn test:ci
+        run: yarn test
 
       - name: Coveralls
         uses: coverallsapp/github-action@master

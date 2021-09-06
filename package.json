@@ -19,7 +19,6 @@
     "build": "yarn clean && yarn babel && rollup -c",
     "babel": "babel src -d build --copy-files --no-copy-ignored",
     "lint": "eslint src/",
-    "test:ci": "yarn test --coverage --coverageReporters=text-lcov",
     "test": "jest"
   },
   "devDependencies": {
