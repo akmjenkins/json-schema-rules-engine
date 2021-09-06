@@ -2,15 +2,14 @@ name: Publish
 
 on:
   push:
-    branches: [testbranch] 
+    tags: 
+        - v*
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-        with:
-          ref: testbranch
 
       - uses: actions/cache@v2
         with:
