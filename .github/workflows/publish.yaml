@@ -15,15 +15,10 @@ jobs:
         with:
           path: '**/node_modules'
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
-
-      - name: Install packages
-        run: yarn
-
-      - name: Create Build
-        run: yarn build
-
-      - uses: JS-DevTools/npm-publish@v1      
-        with:
-          token: ${{ secrets.NPM_TOKEN }}
+      - run: yarn
+      - run: yarn build
+      - run: npm publish
+        env: 
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   
