@@ -4,7 +4,6 @@ export const createAjvValidator = () => {
   const ajv = new Ajv2019();
   return async (object: any, schema: any) => {
     const validate = ajv.compile(schema);
-    const result = validate(object);
-    return { result, errors: validate.errors };
+    return { result: validate(object) };
   };
 };

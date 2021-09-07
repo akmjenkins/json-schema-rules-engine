@@ -16,7 +16,7 @@ export const createRulesEngine = (
 
   const on = (event, subscriber) => {
     const set = eventMap.get(event);
-    set ? eventMap.set(event, new Set([subscriber])) : set.add(subscriber);
+    set ? set.add(subscriber) : eventMap.set(event, new Set([subscriber]));
     return () => eventMap.get(event).delete(subscriber);
   };
 

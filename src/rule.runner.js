@@ -27,34 +27,36 @@ export const createRuleRunner = (validator, opts, emit) => {
       const ruleResults = await Promise.all(
         Array.isArray(interpolated)
           ? interpolated.map(process)
-          : Object.entries(interpolated).map(([factMap, id]) =>
-              process(factMap, id),
-            ),
+          : Object.entries(interpolated).map(async ([k, v]) => process(v, k)),
       );
 
       // create the context and evaluate whether the rules have passed or errored in a single loop
-      const { passed, error, context } = ruleResults.reduce(
-        ({ passed, error, context }, result) => {
+      const { passed, error, resultsContext } = ruleResults.reduce(
+        ({ passed, error, resultsContext }, result) => {
           if (error) return { error };
           passed =
             passed && Object.values(result).every(({ __passed }) => __passed);
           error = Object.values(result).some(({ __error }) => __error);
-          return { passed, error, context: { ...context, ...result } };
+          return {
+            passed,
+            error,
+            resultsContext: { ...resultsContext, ...result },
+          };
         },
         {
           passed: true,
           error: false,
-          context: {},
+          resultsContext: {},
         },
       );
 
-      const nextContext = { ...opts.context, results: context };
+      const nextContext = { ...opts.context, results: resultsContext };
       const ret = (rest = {}) => ({
         [rule]: {
           __error: error,
           __passed: passed,
           ...rest,
-          results: ruleResults,
+          results: resultsContext,
         },
       });
 
@@ -93,7 +95,7 @@ export const createRuleRunner = (validator, opts, emit) => {
                 rule,
                 interpolated,
                 context: opts.context,
-                result: { actions: actionResults, results: ruleResults },
+                result: { actions: actionResults, results: resultsContext },
               });
               return actionResults;
             })

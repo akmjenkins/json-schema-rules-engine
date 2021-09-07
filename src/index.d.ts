@@ -77,6 +77,16 @@ type StartingFactMapEvent = {
   type: 'STARTING_FACT_MAP';
   rule: string;
   mapId: string | number;
+  factMap: FactMap;
+};
+
+type FinishedFactMapEvent = {
+  type: 'FINISHED_FACT_MAP';
+  rule: string;
+  mapId: string | number;
+  results: FactMapResult;
+  passed: boolean;
+  error: boolean;
 };
 
 type StartingFactEvent = {
