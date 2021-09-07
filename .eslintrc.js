@@ -24,7 +24,8 @@ module.exports = {
   ],
   rules: {
     semi: ['error', 'always', { omitLastInOneLineBlock: true }],
-    'no-unused-vars': 1,
+    'no-console': ['error'],
+    'no-unused-vars': 0,
     'spaced-comment': ['error', 'always'],
     'keyword-spacing': ['error', { after: true }],
     'lines-between-class-members': ['error', 'always'],
