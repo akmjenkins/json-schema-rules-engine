@@ -1,6 +1,6 @@
 {
   "name": "json-schema-rules-engine",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Rules engine based on JSON Schema",
   "main": "build/index.js",
   "author": "Adam Jenkins",
