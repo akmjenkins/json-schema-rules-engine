@@ -40,6 +40,44 @@ describe('rules engine', () => {
     expect(call).toHaveBeenCalledWith({ message: 'Who are you?' });
   });
 
+  it('should process nested rules', async () => {
+    const rules = {
+      salutation: {
+        when: [
+          {
+            firstName: { is: { type: 'string', pattern: '^A' } },
+          },
+        ],
+        then: {
+          when: [
+            {
+              lastName: { is: { type: 'string', pattern: '^J' } },
+            },
+          ],
+          then: {
+            actions: [
+              {
+                type: 'log',
+                params: { message: 'You have the same initials as me!' },
+              },
+            ],
+          },
+          otherwise: {
+            actions: [{ type: 'log', params: { message: 'Hi' } }],
+          },
+        },
+      },
+    };
+    engine.setRules(rules);
+    await engine.run({ firstName: 'Andrew' });
+    expect(log).toHaveBeenCalledWith({ message: 'Hi' });
+    log.mockClear();
+    await engine.run({ firstName: 'Andrew', lastName: 'Jackson' });
+    expect(log).toHaveBeenCalledWith({
+      message: 'You have the same initials as me!',
+    });
+  });
+
   it('should memoize facts', async () => {
     const facts = { f1: jest.fn() };
     engine.setFacts(facts);

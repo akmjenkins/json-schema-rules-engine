@@ -58,6 +58,21 @@ export type JobConstruct = EngineOptions & {
   context: Context;
 };
 
+type StartingRuleEvent = {
+  type: 'STARTING_RULE';
+  rule: string;
+  interpolated: FactMap[] | NamedFactMap;
+  context: Context;
+};
+
+type FinishedRuleEvent = {
+  type: 'FINISHED_RULE';
+  rule: string;
+  interpolated: FactMap[] | NamedFactMap;
+  context: Context;
+  result: RuleResult;
+};
+
 type StartingFactMapEvent = {
   type: 'STARTING_FACT_MAP';
   rule: string;
@@ -93,6 +108,12 @@ type EvaluatedFactEvent = {
   result: ValidatorResult;
 };
 
+type RuleParseError = {
+  type: 'RuleParsingError';
+  rule: string;
+  error: Error;
+};
+
 type FactEvaluationError = {
   type: 'FactEvaluationError';
   rule: string;
@@ -120,6 +141,7 @@ type FactExecutionError = {
 
 type ActionExecutionError = {
   type: 'ActionExecutionError';
+  rule: string;
   action: string;
   params?: Record<string, any>;
   error: Error;
@@ -144,7 +166,9 @@ export type DebugEvent =
   | StartingFactMapEvent
   | StartingFactEvent
   | ExecutedFactEvent
-  | EvaluatedFactEvent;
+  | EvaluatedFactEvent
+  | StartingRuleEvent
+  | FinishedRuleEvent;
 export type ErrorEvent =
   | FactEvaluationError
   | FactExecutionError
