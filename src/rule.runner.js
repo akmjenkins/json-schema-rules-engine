@@ -1,6 +1,7 @@
 import { createFactMapProcessor } from './fact.map.processor';
 import { createActionExecutor } from './action.executor';
 import { interpolateDeep } from './interpolate';
+import { parseResults } from './parse.results';
 
 export const createRuleRunner = (validator, opts, emit) => {
   const processor = createFactMapProcessor(validator, opts, emit);
@@ -24,46 +25,27 @@ export const createRuleRunner = (validator, opts, emit) => {
 
       const process = processor(rule);
 
-      const ruleResults = await Promise.all(
-        Array.isArray(interpolated)
-          ? interpolated.map(process)
-          : Object.entries(interpolated).map(async ([k, v]) => process(v, k)),
+      const { passed, error, results } = parseResults(
+        await Promise.all(
+          Array.isArray(interpolated)
+            ? interpolated.map(process)
+            : Object.entries(interpolated).map(async ([k, v]) => process(v, k)),
+        ),
       );
 
-      // create the context and evaluate whether the rules have passed or errored in a single loop
-      const { passed, error, resultsContext } = ruleResults.reduce(
-        ({ passed, error, resultsContext }, result) => {
-          if (error) return { error };
-          passed =
-            passed && Object.values(result).every(({ __passed }) => __passed);
-          error = Object.values(result).some(({ __error }) => __error);
-          return {
-            passed,
-            error,
-            resultsContext: { ...resultsContext, ...result },
-          };
-        },
-        {
-          passed: true,
-          error: false,
-          resultsContext: {},
-        },
-      );
-
-      const nextContext = { ...opts.context, results: resultsContext };
       const ret = (rest = {}) => ({
         [rule]: {
           __error: error,
           __passed: passed,
           ...rest,
-          results: resultsContext,
+          results,
         },
       });
 
       const key = passed ? 'then' : 'otherwise';
       const which = rest[key];
       if (error || !which) return ret();
-
+      const nextContext = { ...opts.context, results };
       const { actions, when: nextWhen } = which;
 
       const [actionResults, nestedReults] = await Promise.all([
@@ -95,7 +77,7 @@ export const createRuleRunner = (validator, opts, emit) => {
                 rule,
                 interpolated,
                 context: opts.context,
-                result: { actions: actionResults, results: resultsContext },
+                result: { actions: actionResults, results },
               });
               return actionResults;
             })
@@ -114,7 +96,7 @@ export const createRuleRunner = (validator, opts, emit) => {
       return nestedReults ? { ...toRet, ...nestedReults } : toRet;
     } catch (error) {
       emit('error', { type: 'RuleExecutionError', error });
-      return { [rule]: {} };
+      return { [rule]: { error: true } };
     }
   };
 };

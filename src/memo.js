@@ -10,6 +10,6 @@ export const memo =
 
 export const memoRecord = (record, check) =>
   Object.entries(record).reduce(
-    (acc, [k, v]) => ({ ...acc, [k]: memo(v, check) }),
+    (acc = {}, [k, v]) => ({ ...acc, [k]: memo(v, check) }),
     {},
   );
