@@ -157,4 +157,33 @@ describe('events', () => {
       }),
     );
   });
+
+  it.only('should emit an action error', async () => {
+    const rules = {
+      salutation: {
+        when: {
+          myFacts: { firstName: { is: { type: 'string', pattern: '^J' } } },
+        },
+        then: {
+          actions: [
+            { type: 'log', params: { message: 'Hi friend!' } },
+            { type: 'call', params: { message: 'called anyway' } },
+          ],
+        },
+      // tslint:disable-next-line
+    };
+    engine.setRules(rules);
+    log.mockImplementationOnce(() => {
+      throw new Error('nad');
+    });
+    engine.on('error', (o) => {
+      if (o.type === 'ActionExecutionError') {
+        console.log(o);
+      }
+    });
+    await engine.run({ firstName: 'John' });
+
+    // should actions be executed sequentially? no
+    // they can be executed sequentially by allowing the "action" to be a fact
+  });
 });

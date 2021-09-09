@@ -6,22 +6,12 @@ import { parseResults } from './parse.results';
 export const createRuleRunner = (validator, opts, emit) => {
   const processor = createFactMapProcessor(validator, opts, emit);
   const executor = createActionExecutor(opts, emit);
+  const { context, pattern, resolver } = opts;
   return async ([rule, { when, ...rest }]) => {
     try {
       // interpolated can be an array FactMap[] OR an object NamedFactMap
-      const interpolated = interpolateDeep(
-        when,
-        opts.context,
-        opts.pattern,
-        opts.resolver,
-      );
-
-      emit('debug', {
-        type: 'STARTING_RULE',
-        rule,
-        interpolated,
-        context: opts.context,
-      });
+      const interpolated = interpolateDeep(when, context, pattern, resolver);
+      emit('debug', { type: 'STARTING_RULE', rule, interpolated, context });
 
       const process = processor(rule);
 
@@ -34,54 +24,26 @@ export const createRuleRunner = (validator, opts, emit) => {
       );
 
       const ret = (rest = {}) => ({
-        [rule]: {
-          __error: error,
-          __passed: passed,
-          ...rest,
-          results,
-        },
+        [rule]: { __error: error, __passed: passed, ...rest, results },
       });
 
       const key = passed ? 'then' : 'otherwise';
       const which = rest[key];
       if (error || !which) return ret();
-      const nextContext = { ...opts.context, results };
-      const { actions, when: nextWhen } = which;
-
-      const [actionResults, nestedReults] = await Promise.all([
-        actions
-          ? Promise.all(
-              interpolateDeep(
-                actions,
-                nextContext,
-                opts.pattern,
-                opts.resolver,
-              ).map(async (action) => {
-                try {
-                  return { ...action, result: await executor(action) };
-                } catch (error) {
-                  emit('error', {
-                    type: 'ActionExecutionError',
-                    rule,
-                    action,
-                    error,
-                    params: action.params,
-                  });
-                  return { ...action, error };
-                }
-              }),
-            ).then((actionResults) => {
-              // we've effectively finished this rule. The nested rules, if any, will print their own debug messages (I think this is acceptable behavior?)
-              emit('debug', {
-                type: 'FINISHED_RULE',
-                rule,
-                interpolated,
-                context: opts.context,
-                result: { actions: actionResults, results },
-              });
-              return actionResults;
-            })
-          : null,
+      const nextContext = { ...context, results };
+      const { actions = [], when: nextWhen } = which;
+      const [actionResults, nestedResults] = await Promise.all([
+        executor(actions, nextContext, rule).then((actionResults) => {
+          // we've effectively finished this rule. The nested rules, if any, will print their own debug messages (I think this is acceptable behavior?)
+          emit('debug', {
+            type: 'FINISHED_RULE',
+            rule,
+            interpolated,
+            context,
+            result: { actions: actionResults, results },
+          });
+          return actionResults;
+        }),
         nextWhen
           ? createRuleRunner(
               validator,
@@ -90,10 +52,8 @@ export const createRuleRunner = (validator, opts, emit) => {
             )([`${rule}.${key}`, which])
           : null,
       ]);
-
       const toRet = ret({ actions: actionResults });
-
-      return nestedReults ? { ...toRet, ...nestedReults } : toRet;
+      return nestedResults ? { ...toRet, ...nestedResults } : toRet;
     } catch (error) {
       emit('error', { type: 'RuleExecutionError', error });
       return { [rule]: { error: true } };
