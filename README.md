@@ -9,11 +9,17 @@ A highly configurable rules engine based on [JSON Schema](https://json-schema.or
 
 _NBD: It actually doesn't **have** to use JSON Schema, but it's suggested_
 
+## Preface
+
+Lots of rules engines use custom predicates, or predicates available from other libraries. [`json-rules-engine`](https://github.com/CacheControl/json-rules-engine) uses custom `Operators` and [json-rules-engine-simplified](https://github.com/RxNT/json-rules-engine-simplified) uses the [predicate](https://github.com/landau/predicate) library. One thing that seems to have gotten missed is that **a json schema _IS_ a predicate** - a subject will either validate against a JSON schema, or it won't - predicate. Therefore, the only thing you need to write rules is a validator, no other dependencies needed.
+
+This library doesn't do a whole lot - it just has an opinionated syntax to make rules human readable - which is why it's less than 2kb minzipped. You just need to bring your own validator (may we suggest [Ajv](https://github.com/ajv-validator/ajv)?) and write your rules.
+
 ## Why?
 
 Three reasons:
 
-1. Schema validation of a data structure can be used to implement boolean logic
+1. A JSON schema **is a predicate**
 2. Tools for JSON schema are everywhere and support is wide
 3. Custom operators (like those in JSON rules engine) aren't sustainable. You can either make a PR for a new operator that may or may not get merged OR you have to take on the ownership in your own codebase of building and maintaining custom operators. With `json-schema-rules-engine`, you can implement new logic immediately whenever the spec is published (thanks to very actively maintained projects like [AJV](https://github.com/ajv-validator/ajv)).
 
@@ -399,7 +405,7 @@ const myFactMap = {
 
 ### Resolver
 
-By default, `json-schema-rules-engine` uses dot notation - like [property-expr](https://github.com/jquense/expr) or [lodash's get](https://lodash.com/docs/4.17.15#get) - to retrieve an innter value from an object or array via `path`. This can be changed by the `resolver` option. For example, if you wanted to use [json pointer](https://www.npmjs.com/package/jsonpointer), you could do it like this:
+By default, `json-schema-rules-engine` uses dot notation - like [property-expr](https://github.com/jquense/expr) or [lodash's get](https://lodash.com/docs/4.17.15#get) - to retrieve an inner value from an object or array via `path`. This can be changed by the `resolver` option. For example, if you wanted to use [json pointer](https://www.npmjs.com/package/jsonpointer), you could do it like this:
 
 ```js
 import { get } from 'jsonpointer';
