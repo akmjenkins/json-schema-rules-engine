@@ -11,7 +11,7 @@ _NBD: It actually doesn't **have** to use JSON Schema, but it's suggested_
 
 ## Preface
 
-Lots of rules engines use custom predicates, or predicates available from other libraries. [`json-rules-engine`](https://github.com/CacheControl/json-rules-engine) uses custom `Operators` and [json-rules-engine-simplified](https://github.com/RxNT/json-rules-engine-simplified) uses the [predicate](https://github.com/landau/predicate) library. One thing that seems to have gotten missed is that **a json schema _IS_ a predicate** - a subject will either validate against a JSON schema, or it won't - predicate. Therefore, the only thing you need to write rules is a validator, no other dependencies needed.
+Lots of rules engines use custom predicates, or predicates available from other libraries. [json-rules-engine](https://github.com/CacheControl/json-rules-engine) uses custom [Operators](https://github.com/CacheControl/json-rules-engine/blob/master/src/engine-default-operators.js) and [json-rules-engine-simplified](https://github.com/RxNT/json-rules-engine-simplified) uses the [predicate](https://github.com/landau/predicate) library. One thing that seems to have gotten missed is that **a json schema _IS_ a predicate** - a subject will either validate against a JSON schema, or it won't. Therefore, the only thing you need to write rules is a schema validator, no other dependencies needed. The other benefit of this is that if you need to use a new operator, your dependency on this library doesn't change. You either get that logic for free when the JSON Schema specification updates, or you add that operator to your [validator[](#validator), but to to this rules engine itself.
 
 This library doesn't do a whole lot - it just has an opinionated syntax to make rules human readable - which is why it's less than 2kb minzipped. You just need to bring your own validator (may we suggest [Ajv](https://github.com/ajv-validator/ajv)?) and write your rules.
 
@@ -21,7 +21,7 @@ Three reasons:
 
 1. A JSON schema **is a predicate**
 2. Tools for JSON schema are everywhere and support is wide
-3. Custom operators (like those in JSON rules engine) aren't sustainable. You can either make a PR for a new operator that may or may not get merged OR you have to take on the ownership in your own codebase of building and maintaining custom operators. With `json-schema-rules-engine`, you can implement new logic immediately whenever the spec is published (thanks to very actively maintained projects like [AJV](https://github.com/ajv-validator/ajv)).
+3. No dependency on second or third-party packages for logical operators. You get whatever is in the JSON schema specification, or whatever you decide to support in your [validator](#validator).
 
 ## Features
 
