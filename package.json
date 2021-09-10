@@ -51,6 +51,7 @@
     "eslint-plugin-prettier": "^4.0.0",
     "fetch-mock-jest": "^1.5.1",
     "jest": "^27.1.0",
+    "jsonpointer": "^4.1.0",
     "lodash": "^4.17.21",
     "microtime": "^3.0.0",
     "node-fetch": "^3.0.0",

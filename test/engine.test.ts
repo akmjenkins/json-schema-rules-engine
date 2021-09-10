@@ -1,8 +1,10 @@
 import _ from 'lodash';
+import { get } from 'jsonpointer';
 import createRulesEngine, { RulesEngine } from '../src';
 import { createAjvValidator } from './validators';
 
 describe('rules engine', () => {
+  const validator = jest.fn(createAjvValidator());
   let engine: RulesEngine;
   let log: jest.Mock;
   let call: jest.Mock;
@@ -10,9 +12,7 @@ describe('rules engine', () => {
   beforeEach(() => {
     log = jest.fn();
     call = jest.fn();
-    engine = createRulesEngine(createAjvValidator(), {
-      actions: { log, call },
-    });
+    engine = createRulesEngine(validator, { actions: { log, call } });
   });
 
   it('should execute a rule', async () => {
@@ -176,6 +176,29 @@ describe('rules engine', () => {
     expect(log).toHaveBeenCalledWith({ message: 'Hi friend!' });
     log.mockClear();
     await engine.run({ user: { firstName: 'Bill' } });
+    expect(log).not.toHaveBeenCalled();
+  });
+
+  it('should use a custom resolver', async () => {
+    const thisEngine = createRulesEngine(validator, { resolver: get });
+    const rules = {
+      salutation: {
+        when: [
+          {
+            user: { path: '/firstName', is: { type: 'string', pattern: '^J' } },
+          },
+        ],
+        then: {
+          actions: [{ type: 'log', params: { message: 'Hi friend!' } }],
+        },
+      },
+    };
+    thisEngine.setRules(rules);
+    thisEngine.setActions({ log });
+    await thisEngine.run({ user: { firstName: 'John' } });
+    expect(log).toHaveBeenCalledWith({ message: 'Hi friend!' });
+    log.mockClear();
+    await thisEngine.run({ user: { firstName: 'Bill' } });
     expect(log).not.toHaveBeenCalled();
   });
 
