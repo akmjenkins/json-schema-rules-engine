@@ -145,7 +145,7 @@ engine.run({
 
 ## Validator
 
-The validator is what makes `json-schema-rules-engine` so powerful. The validator is passed the resolved fact value and the schema (the value of the `is` property of an [`evaluator`](#evaluators) and asynchronously a `ValidatorResult`:
+The validator is what makes `json-schema-rules-engine` so powerful. The validator is passed the resolved fact value and the schema (the value of the `is` property of an [`evaluator`](#evaluators)) and asynchronously returns a `ValidatorResult`:
 
 ```ts
 type ValidatorResult = {
@@ -262,7 +262,7 @@ const saveAuditRecord = async ({ eventType, data }) => {
   ]);
 };
 
-const engine = createRulesEngine({ actions: saveAuditRecord });
+const engine = createRulesEngine(validator, { actions: saveAuditRecord });
 ```
 
 ### Rules
@@ -299,7 +299,7 @@ const myRule = {
   },
 };
 
-const engine = createRulesEngine({ rules: { myRule } });
+const engine = createRulesEngine(validator, { rules: { myRule } });
 engine.run({ age: 31, name: 'Fred' }); // no action is fired
 engine.run({ age: 32, name: 'Joe' }); // fires the log action with { message: 'Hi Joe!' }
 ```
