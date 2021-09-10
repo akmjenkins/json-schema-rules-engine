@@ -24,7 +24,7 @@ export const createRuleRunner = (validator, opts, emit) => {
       );
 
       const ret = (rest = {}) => ({
-        [rule]: { __error: error, __passed: passed, ...rest, results },
+        [rule]: { error, passed, ...rest, results },
       });
 
       const key = passed ? 'then' : 'otherwise';
