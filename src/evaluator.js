@@ -34,10 +34,17 @@ export const createEvaluator =
         });
         return { factName, ...result, value, resolved };
       } catch (error) {
-        onError({ type: 'FactEvaluationError', path, is, resolved });
+        onError({
+          type: 'FactEvaluationError',
+          error,
+          path,
+          is,
+          value,
+          resolved,
+        });
       }
     } catch (error) {
-      onError({ type: 'FactExecutionError', params });
+      onError({ type: 'FactExecutionError', error, params });
     }
 
     return { factName, error: true };

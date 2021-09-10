@@ -157,4 +157,193 @@ describe('events', () => {
       }),
     );
   });
+
+  it('should emit a non-blocking ActionExecutionError if an action throws an error', async () => {
+    const rules = {
+      salutation: {
+        when: {
+          myFacts: { firstName: { is: { type: 'string', pattern: '^J' } } },
+        },
+        then: {
+          actions: [
+            { type: 'log', params: { message: 'Hi friend!' } },
+            { type: 'call', params: { message: 'called anyway' } },
+          ],
+        },
+      },
+    };
+    engine.setRules(rules);
+    const error = new Error('nad');
+    log.mockImplementationOnce(() => {
+      throw error;
+    });
+    const spy = jest.fn();
+    engine.on('error', spy);
+    await engine.run({ firstName: 'John' });
+    expect(spy).toHaveBeenCalledWith({
+      type: 'ActionExecutionError',
+      action: 'log',
+      params: { message: 'Hi friend!' },
+      rule: 'salutation',
+      error,
+    });
+    expect(call).toHaveBeenCalledWith({ message: 'called anyway' });
+  });
+
+  it('should emit a non-blocking ActionExecutionError if an action has not been supplied', async () => {
+    const rules = {
+      salutation: {
+        when: {
+          myFacts: { firstName: { is: { type: 'string', pattern: '^J' } } },
+        },
+        then: {
+          actions: [
+            { type: 'nonAction', params: { message: 'Hi friend!' } },
+            { type: 'call', params: { message: 'called anyway' } },
+          ],
+        },
+      },
+    };
+    engine.setRules(rules);
+    const spy = jest.fn();
+    engine.on('error', spy);
+    await engine.run({ firstName: 'John' });
+    expect(spy).toHaveBeenCalledWith({
+      type: 'ActionExecutionError',
+      action: 'nonAction',
+      params: { message: 'Hi friend!' },
+      rule: 'salutation',
+      error: expect.objectContaining({
+        message: 'No action found for nonAction',
+      }),
+    });
+    expect(call).toHaveBeenCalledWith({ message: 'called anyway' });
+  });
+
+  it('should emit a FactExecutionError and continue', async () => {
+    const error = new Error('bad');
+    const context = {
+      fromContext: {
+        firstName: 'fred',
+      },
+      myFact: jest.fn(() => {
+        throw error;
+      }),
+    };
+
+    engine.setRules({
+      salutation: {
+        when: [
+          {
+            myFact: {
+              params: '{{fromContext}}',
+              is: { type: 'string', pattern: '^J' },
+            },
+          },
+          {
+            fromContext: {
+              path: 'firstName',
+              is: { type: 'string', const: 'fred' },
+            },
+          },
+        ],
+        then: {
+          actions: [{ type: 'call', params: { message: 'called anyway' } }],
+        },
+      },
+    });
+    const spy = jest.fn();
+    engine.on('error', spy);
+    await engine.run(context);
+    expect(spy).toHaveBeenCalledWith({
+      type: 'FactExecutionError',
+      factName: 'myFact',
+      mapId: 0,
+      params: context.fromContext,
+      rule: 'salutation',
+      error,
+    });
+    expect(call).toHaveBeenCalledWith({ message: 'called anyway' });
+  });
+
+  it('should emit a FactExecutionError not call any actions', async () => {
+    const context = {
+      fromContext: {
+        firstName: 'fred',
+      },
+      myFact: jest.fn(() => {
+        throw new Error('bad');
+      }),
+    };
+
+    const spy = jest.fn();
+    engine.on('error', spy);
+    engine.setRules({
+      salutation: {
+        when: [
+          {
+            myFact: {
+              params: '{{fromContext}}',
+              is: { type: 'string', pattern: '^J' },
+            },
+          },
+        ],
+        then: {
+          actions: [{ type: 'call', params: { message: 'called then' } }],
+        },
+        otherwise: {
+          actions: [{ type: 'call', params: { message: 'called otherwise' } }],
+        },
+      },
+    });
+    await engine.run(context);
+    const error = new Error('bad');
+    expect(spy).toHaveBeenCalledWith({
+      type: 'FactExecutionError',
+      factName: 'myFact',
+      mapId: 0,
+      params: context.fromContext,
+      rule: 'salutation',
+      error,
+    });
+    expect(call).not.toHaveBeenCalled();
+  });
+
+  it('should emit a FactEvaluationError', async () => {
+    const error = new Error('bad');
+    const thisEngine = createRulesEngine((subject, schema) => {
+      throw error;
+    });
+    const rules = {
+      salutation: {
+        when: {
+          myFacts: {
+            user: { path: 'firstName', is: { type: 'string', pattern: '^J' } },
+          },
+        },
+        then: {
+          actions: [{ type: 'log', params: { message: 'Hi friend!' } }],
+        },
+        otherwise: {
+          actions: [{ type: 'call', params: { message: 'Who are you?' } }],
+        },
+      },
+    };
+    thisEngine.setRules(rules);
+    const spy = jest.fn();
+    const context = { user: { firstName: 'John' } };
+    thisEngine.on('error', spy);
+    await thisEngine.run(context);
+    expect(spy).toHaveBeenCalledWith({
+      type: 'FactEvaluationError',
+      error,
+      mapId: 'myFacts',
+      rule: 'salutation',
+      factName: 'user',
+      path: 'firstName',
+      is: { type: 'string', pattern: '^J' },
+      resolved: 'John',
+      value: { firstName: 'John' },
+    });
+  });
 });

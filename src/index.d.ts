@@ -29,7 +29,7 @@ interface FactMap {
 }
 
 export type Evaluator = {
-  params?: Record<string, any>;
+  params?: unknown;
   path?: string;
   is: Record<string, any>;
 };
@@ -232,5 +232,5 @@ export interface RulesEngine {
 
 export default function createRulesEngine(
   validator: Validator,
-  options: Options,
+  options?: Options,
 ): RulesEngine;
