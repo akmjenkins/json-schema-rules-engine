@@ -11,8 +11,11 @@ export const createJob = (validator, opts, emit) => {
   );
 
   return async () =>
-    (await Promise.all(Object.entries(rules).map(checkRule))).reduce(
-      (a, r) => ({ ...a, ...r }),
-      {},
-    );
+    (
+      await Promise.all(
+        Array.isArray(rules)
+          ? rules.map((r, i) => checkRule([i, r]))
+          : Object.entries(rules).map(checkRule),
+      )
+    ).reduce((a, r) => ({ ...a, ...r }), {});
 };

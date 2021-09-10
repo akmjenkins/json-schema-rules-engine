@@ -262,12 +262,12 @@ const saveAuditRecord = async ({ eventType, data }) => {
   ]);
 };
 
-const engine = createRulesEngine({ actions: saveAuditRecord });
+const engine = createRulesEngine(validator, { actions: saveAuditRecord });
 ```
 
 ### Rules
 
-Rules are written as **when**, **then**, **otherwise**. A when clause consists of an array of [`FactMap`s](#factmap), or an object whose values are [`FactMap`s](#factmap). If any of the `FactMap`s in the object or array evaluate to true, the properties of the `then` clause of the rule are evaluated. If not, the `otherwise` clause is evaluated.
+Rules are written as **when**, **then**, **otherwise**. A `when` clause consists of an array of [`FactMap`s](#factmap), or an object whose values are [`FactMap`s](#factmap). If any of the `FactMap`s in the object or array evaluate to true, the properties of the `then` clause of the rule are evaluated. If not, the `otherwise` clause is evaluated.
 
 ```js
 const myRule = {
@@ -299,9 +299,29 @@ const myRule = {
   },
 };
 
-const engine = createRulesEngine({ rules: { myRule } });
+const engine = createRulesEngine(validator, { rules: { myRule } });
 engine.run({ age: 31, name: 'Fred' }); // no action is fired
 engine.run({ age: 32, name: 'Joe' }); // fires the log action with { message: 'Hi Joe!' }
+```
+
+Named rules are useful during debugging. If you don't particularly care about the names of your rules, you can always use an array:
+
+```js
+const rules = [
+  {
+    when: [ ... ],
+    then: [ ... ],
+    otherwise: [ ...]
+  },
+  {
+    when: [ ... ],
+    then: [ ... ],
+    otherwise: [ ...]
+  },
+  ...
+]
+
+const engine = createRulesEngine(validator, { rules });
 ```
 
 #### Nesting Rules

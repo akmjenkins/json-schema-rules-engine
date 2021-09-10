@@ -2,7 +2,7 @@ type UnaryFunction = (arg: any) => MaybePromise<unknown>;
 
 export type Facts = Record<string, UnaryFunction>;
 export type Actions = Record<string, UnaryFunction>;
-export type Rules = Record<string, Rule>;
+export type Rules = Record<string, Rule> | Rule[];
 export type Rule = {
   when: FactMap[] | NamedFactMap;
   then?: RuleActions | Rule | (Rule & RuleActions);
@@ -217,7 +217,7 @@ export type Context = Record<string, any>;
 
 type PatchFunction<T> = (o: T) => T;
 
-type Patch<T> = PatchFunction<T> | Partial<T>;
+type Patch<T> = PatchFunction<T> | T;
 
 export interface RulesEngine {
   setRules(rules: Patch<Rules>): void;

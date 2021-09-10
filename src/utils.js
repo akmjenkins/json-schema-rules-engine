@@ -1,5 +1,4 @@
-export const patch = (o, w) =>
-  typeof o === 'function' ? o(w) : { ...w, ...o };
+export const patch = (o, w) => (typeof o === 'function' ? o(w) : o);
 
 // inlined from property-expr
 const SPLIT_REGEX = /[^.^\]^[]+|(?=\[\]|\.\.)/g;
