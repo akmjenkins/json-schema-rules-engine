@@ -227,4 +227,152 @@ describe('rules engine', () => {
     expect(lookupUser).toHaveBeenCalled();
     expect(log).toHaveBeenCalledWith({ message: 'Hi friend!' });
   });
+
+  it('should interpolate results', async () => {
+    const rules = {
+      salutation: {
+        when: [
+          {
+            user: { path: 'firstName', is: { type: 'string', pattern: '^F' } },
+          },
+        ],
+        then: {
+          actions: [
+            {
+              type: 'log',
+              params: {
+                value: '{{results[0].user.value}}',
+                resolved: '{{results[0].user.resolved}}',
+                message: 'Hi {{results[0].user.resolved}}!',
+              },
+            },
+          ],
+        },
+      },
+    };
+
+    const user = {
+      firstName: 'Freddie',
+      lastName: 'Mercury',
+    };
+    engine.setRules(rules);
+    await engine.run({ user });
+    expect(log).toHaveBeenCalledWith({
+      value: user,
+      resolved: user.firstName,
+      message: `Hi ${user.firstName}!`,
+    });
+  });
+
+  it('should interpolate results with a named fact map', async () => {
+    const rules = {
+      salutation: {
+        when: {
+          checkName: {
+            user: { path: 'firstName', is: { type: 'string', pattern: '^F' } },
+          },
+        },
+        then: {
+          actions: [
+            {
+              type: 'log',
+              params: {
+                value: '{{results.checkName.user.value}}',
+                resolved: '{{results.checkName.user.resolved}}',
+                message: 'Hi {{results.checkName.user.resolved}}!',
+              },
+            },
+          ],
+        },
+      },
+    };
+
+    const user = {
+      firstName: 'Freddie',
+      lastName: 'Mercury',
+    };
+    engine.setRules(rules);
+    await engine.run({ user });
+    expect(log).toHaveBeenCalledWith({
+      value: user,
+      resolved: user.firstName,
+      message: `Hi ${user.firstName}!`,
+    });
+  });
+
+  it('should interpolate using a custom pattern', async () => {
+    const thisEngine = createRulesEngine(validator, { pattern: /\$(.+?)\$/g });
+    const rules = {
+      salutation: {
+        when: [
+          {
+            user: { path: 'firstName', is: { type: 'string', pattern: '^F' } },
+          },
+        ],
+        then: {
+          actions: [
+            {
+              type: 'log',
+              params: {
+                value: '$results[0].user.value$',
+                resolved: '$results[0].user.resolved$',
+                message: 'Hi $results[0].user.resolved$!',
+              },
+            },
+          ],
+        },
+      },
+    };
+
+    const user = {
+      firstName: 'Freddie',
+      lastName: 'Mercury',
+    };
+    thisEngine.setRules(rules);
+    thisEngine.setActions({ log });
+    await thisEngine.run({ user });
+    expect(log).toHaveBeenCalledWith({
+      value: user,
+      resolved: user.firstName,
+      message: `Hi ${user.firstName}!`,
+    });
+  });
+
+  it('should interpolate using a custom resolver', async () => {
+    const thisEngine = createRulesEngine(validator, { resolver: get });
+    const rules = {
+      salutation: {
+        when: [
+          {
+            user: { path: '/firstName', is: { type: 'string', pattern: '^F' } },
+          },
+        ],
+        then: {
+          actions: [
+            {
+              type: 'log',
+              params: {
+                value: '{{/results/0/user/value}}',
+                resolved: '{{/results/0/user/resolved}}',
+                message: 'Hi {{/results/0/user/resolved}}!',
+              },
+            },
+          ],
+        },
+      },
+    };
+
+    const user = {
+      firstName: 'Freddie',
+      lastName: 'Mercury',
+    };
+    thisEngine.setRules(rules);
+    thisEngine.setActions({ log });
+    await thisEngine.run({ user });
+    expect(log).toHaveBeenCalledWith({
+      value: user,
+      resolved: user.firstName,
+      message: `Hi ${user.firstName}!`,
+    });
+  });
 });

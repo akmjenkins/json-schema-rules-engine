@@ -311,9 +311,11 @@ describe('events', () => {
 
   it('should emit a FactEvaluationError', async () => {
     const error = new Error('bad');
-    const thisEngine = createRulesEngine((subject, schema) => {
-      throw error;
-    });
+    const thisEngine = createRulesEngine(
+      jest.fn(() => {
+        throw error;
+      }),
+    );
     const rules = {
       salutation: {
         when: {
