@@ -57,7 +57,7 @@ or, use it directly in the browser
 ## Basic Example
 
 ```js
-import Ajv2019 from 'ajv/dist/2019';
+import Ajv from 'ajv';
 import createRulesEngine from 'json-schema-rules-engine';
 
 const facts = {
