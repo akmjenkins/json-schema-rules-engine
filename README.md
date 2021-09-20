@@ -1,7 +1,7 @@
 # JSON Schema Rules Engine
 
 [![npm version](https://img.shields.io/npm/v/json-schema-rules-engine)](https://npmjs.org/package/json-schema-rules-engine)
-[![Coverage Status](https://coveralls.io/repos/github/akmjenkins/json-schema-rules-engine/badge.svg)](https://coveralls.io/github/akmjenkins/json-schema-rules-engine)
+[![codecov](https://codecov.io/gh/akmjenkins/json-schema-rules-engine/branch/main/graph/badge.svg)](https://codecov.io/gh/akmjenkins/json-schema-rules-engine)
 ![Build Status](https://github.com/akmjenkins/json-schema-rules-engine/actions/workflows/test.yaml/badge.svg)
 [![Bundle Phobia](https://badgen.net/bundlephobia/minzip/json-schema-rules-engine)](https://bundlephobia.com/result?p=json-schema-rules-engine)
 
