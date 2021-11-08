@@ -50,7 +50,7 @@
     "eslint-plugin-jest": "^24.4.0",
     "eslint-plugin-prettier": "^4.0.0",
     "jest": "^27.1.0",
-    "jsonpointer": "^4.1.0",
+    "jsonpointer": "^5.0.0",
     "lodash": "^4.17.21",
     "prettier": "^2.3.2",
     "rollup": "^2.56.3",
