@@ -137,7 +137,7 @@ engine.run({
 - [Rules](#rules)
   - [Nesting](#nesting-rules)
   - [FactMap](#factmap)
-  - [Evaluators](#evaluators)
+  - [Evaluator](#evaluator)
 - [Resolver](#resolver)
 - [Interpolation](#interpolation)
   - [Results Context](#results-context)
@@ -145,7 +145,7 @@ engine.run({
 
 ## Validator
 
-The validator is what makes `json-schema-rules-engine` so powerful. The validator is passed the resolved fact value and the schema (the value of the `is` property of an [`evaluator`](#evaluators)) and asynchronously returns a `ValidatorResult`:
+The validator is what makes `json-schema-rules-engine` so powerful. The validator is passed the resolved fact value and the schema (the value of the `is` property of an [`evaluator`](#evaluator)) and asynchronously returns a `ValidatorResult`:
 
 ```ts
 type ValidatorResult = {
