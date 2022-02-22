@@ -1,13 +1,11 @@
 module.exports = {
   transform: {
-    '^.+\\.jsx?$': require.resolve('babel-jest'),
-    '^.+\\.ts?$': 'ts-jest',
+    '^.+\\.js?$': require.resolve('babel-jest'),
   },
-  transformIgnorePatterns: ['node_modules/(?!(node-fetch|fetch-blob)/)'],
   collectCoverageFrom: ['./src/*.js'],
   coverageThreshold: {
     global: {
-      branches: 85,
+      branches: 95,
       functions: 95,
       lines: 95,
     },

@@ -1,2 +1,5 @@
-import { createRulesEngine } from './engine';
-export default createRulesEngine;
+export * from './when';
+export * from './factmap';
+export * from './evaluator';
+export * from './utils';
+export * from './validator';

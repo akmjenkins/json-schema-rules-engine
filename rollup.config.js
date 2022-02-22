@@ -1,7 +1,6 @@
-import { nodeResolve } from '@rollup/plugin-node-resolve';
 import { terser } from 'rollup-plugin-terser';
 import sourcemaps from 'rollup-plugin-sourcemaps';
-import { babel } from '@rollup/plugin-babel';
+import size from 'rollup-plugin-bundle-size';
 
 export default {
   input: 'src/index.js',
@@ -14,5 +13,5 @@ export default {
       plugins: [terser()],
     },
   ],
-  plugins: [nodeResolve(), babel({ babelHelpers: 'bundled' }), sourcemaps()],
+  plugins: [sourcemaps(), size()],
 };

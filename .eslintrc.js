@@ -9,13 +9,7 @@ module.exports = {
     ecmaVersion: 6,
     sourceType: 'module',
   },
-  settings: {
-    'import/resolver': {
-      node: {
-        paths: ['./src'],
-      },
-    },
-  },
+  settings: {},
   extends: [
     'eslint:recommended',
     'plugin:prettier/recommended',
@@ -75,7 +69,15 @@ module.exports = {
         jest: true,
         node: true,
       },
+      settings: {
+        'import/resolver': {
+          node: {
+            paths: ['./src'],
+          },
+        },
+      },
       rules: {
+        'no-console': 0,
         'no-unused-vars': 0,
         'jest/no-disabled-tests': 0,
         'jest/no-focused-tests': 'error',
