@@ -1,6 +1,6 @@
 import Ajv from 'ajv';
 import { get } from 'lodash';
-import { createEvaluator, createAjvValidator } from '../build';
+import { createEvaluator, createAjvValidator } from '../src';
 
 describe('evaluator', () => {
   const factName = 'user';

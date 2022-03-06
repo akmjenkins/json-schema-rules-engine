@@ -1,5 +1,5 @@
 import Ajv from 'ajv';
-import { createWhen, isWhenValid, createAjvValidator } from '../build';
+import { createWhen, isWhenValid, createAjvValidator } from '../src';
 
 describe('when', () => {
   const factmapA = {

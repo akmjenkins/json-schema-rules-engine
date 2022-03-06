@@ -1,5 +1,5 @@
 import Ajv from 'ajv';
-import { createFactMap, createAjvValidator } from '../build';
+import { createFactMap, createAjvValidator } from '../src';
 
 describe('factmap', () => {
   const facts = {
